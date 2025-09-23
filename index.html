@@ -74,7 +74,7 @@
                     <div class="relative">
                         <input type="password" id="login-password" placeholder="Sua senha" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <button type="button" class="toggle-password absolute inset-y-0 right-0 px-3 flex items-center text-gray-500">
-                            <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 S.A. 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-3.11 3.563-5.518 6.814-6.166M9 9a3 3 0 116 0 3 3 0 01-6 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 2l20 20" /></svg>
                         </button>
                     </div>
@@ -201,19 +201,22 @@
     </div>
     
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
+        // Your web app's Firebase configuration
         const firebaseConfig = {
-          apiKey: "AIzaSyApwaG2V1Sm4ngUuWibqS3e8BJkD5qFRZk",
-          authDomain: "planner2-813b2.firebaseapp.com",
-          projectId: "planner2-813b2",
-          storageBucket: "planner2-813b2.firebasestorage.app",
-          messagingSenderId: "171560326149",
-          appId: "1:171560326149:web:eaf7bc39915088c4a2f86c"
+            apiKey: "AIzaSyCjoAgqr7qbO305HuehDcqbc9WMcCRHupE",
+            authDomain: "cronograma-de-estudos-60ec8.firebaseapp.com",
+            projectId: "cronograma-de-estudos-60ec8",
+            storageBucket: "cronograma-de-estudos-60ec8.firebasestorage.app",
+            messagingSenderId: "678017000398",
+            appId: "1:678017000398:web:f8e3706f4d5cbfb943419f",
+            measurementId: "G-PJLJFRD24Y"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -532,18 +535,13 @@
                 const topicIndexInt = parseInt(topicIndex, 10);
                 const isCurrentlyCompleted = (userPlan.progress[subject] || 0) > topicIndexInt;
 
-                // A lógica aqui é diferente da anterior para funcionar com o DOM
-                if (isCurrentlyCompleted) { // Ação: DESFAZER
-                    userPlan.progress[subject] = topicIndexInt;
-                } else { // Ação: CONCLUIR
-                    userPlan.progress[subject] = topicIndexInt + 1;
-                }
+                userPlan.progress[subject] = isCurrentlyCompleted ? topicIndexInt : topicIndexInt + 1;
                 
                 button.disabled = true;
-                await savePlanToFirestore(false); // Salva sem mostrar o toast
-                renderStudySessions(); // Re-renderiza a lista para refletir o estado de "Desfazer"
+                await savePlanToFirestore(false);
+                renderStudySessions();
                 renderGeneralProgress();
-                button.disabled = false;
+                // O botão será re-renderizado, então não precisamos reativá-lo aqui.
             }
         });
         
