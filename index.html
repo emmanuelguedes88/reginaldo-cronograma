@@ -41,22 +41,24 @@
             transition: opacity 0.3s, transform 0.3s;
             transform: translateY(100%);
             opacity: 0;
+            visibility: hidden;
         }
         #feedback-toast.show {
             transform: translateY(0);
             opacity: 1;
+            visibility: visible;
         }
     </style>
 </head>
 <body class="antialiased text-gray-800 bg-gradient-to-br from-gray-50 to-blue-100 min-h-screen">
 
-    <div id="loadingOverlay" class="hidden fixed inset-0 z-50 flex-col items-center justify-center modal-backdrop">
+    <div id="loadingOverlay" class="hidden fixed inset-0 z-[60] flex-col items-center justify-center modal-backdrop">
         <div class="loader"></div>
         <p class="text-white mt-4 font-semibold">Aguarde...</p>
     </div>
 
     <!-- Feedback Toast -->
-    <div id="feedback-toast" class="fixed bottom-5 right-5 bg-green-600 text-white font-bold py-3 px-5 rounded-lg shadow-xl">
+    <div id="feedback-toast" class="fixed bottom-5 right-5 bg-green-600 text-white font-bold py-3 px-5 rounded-lg shadow-xl z-50">
         Plano salvo com sucesso!
     </div>
 
@@ -228,7 +230,7 @@
         const feedbackToast = document.getElementById('feedback-toast');
         
         // --- Controle de UI ---
-        const showLoading = (text) => { loadingOverlay.querySelector('p').textContent = text; loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex'); };
+        const showLoading = (text = 'Aguarde...') => { loadingOverlay.querySelector('p').textContent = text; loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex'); };
         const hideLoading = () => { loadingOverlay.classList.add('hidden'); loadingOverlay.classList.remove('flex'); };
         const showAuthModal = () => { mainApp.classList.add('hidden'); authModal.classList.remove('hidden'); authModal.classList.add('flex'); setTimeout(() => authModal.querySelector('.modal-content-wrapper').classList.add('active'), 50); };
         const hideAuthModal = () => { authModal.querySelector('.modal-content-wrapper').classList.remove('active'); setTimeout(() => { authModal.classList.add('hidden'); authModal.classList.remove('flex'); }, 200); };
@@ -238,7 +240,7 @@
         
         const showToast = (message, isError = false) => {
             feedbackToast.textContent = message;
-            feedbackToast.className = `fixed bottom-5 right-5 text-white font-bold py-3 px-5 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'}`;
+            feedbackToast.className = `fixed bottom-5 right-5 text-white font-bold py-3 px-5 rounded-lg shadow-xl z-50 ${isError ? 'bg-red-600' : 'bg-green-600'}`;
             feedbackToast.classList.add('show');
             setTimeout(() => {
                 feedbackToast.classList.remove('show');
@@ -258,7 +260,6 @@
             } else {
                 userId = null;
                 userPlan = null;
-                // Limpa e esconde a UI principal ao fazer logout.
                 planView.classList.add('hidden');
                 welcomeView.classList.add('hidden');
                 mainApp.classList.add('hidden');
@@ -305,45 +306,30 @@
         
         const openSetupModal = (isEditing = false) => {
             document.getElementById('setup-title').textContent = isEditing ? 'Editar Plano de Estudos' : 'Configurar Plano de Estudos';
-            
             const dias = {Segunda: 'Seg', Terça: 'Ter', Quarta: 'Qua', Quinta: 'Qui', Sexta: 'Sex', Sábado: 'Sáb', Domingo: 'Dom'};
             document.getElementById('dias-semana-grid').innerHTML = Object.entries(dias).map(([fullName, shortName]) => `<div class="custom-checkbox"><input type="checkbox" id="dia-${shortName}" name="dia" value="${fullName}"><label for="dia-${shortName}" class="block p-2 rounded-lg cursor-pointer font-bold text-center">${shortName}</label></div>`).join('');
             const turnos = ['Manhã', 'Tarde', 'Noite'];
             document.getElementById('turnos-estudo-grid').innerHTML = turnos.map(turno => `<div class="custom-checkbox"><input type="checkbox" id="turno-${turno}" name="turno" value="${turno}"><label for="turno-${turno}" class="block p-3 rounded-lg cursor-pointer font-medium text-center">${turno}</label></div>`).join('');
-            
             const subjectsContainer = document.getElementById('subjectsContainer');
             subjectsContainer.innerHTML = '';
 
             if (isEditing && userPlan) {
                 document.getElementById('concurso-nome').value = userPlan.contestName;
                 document.getElementById('start-date').value = userPlan.startDate;
-                
                 const dateOption = userPlan.examDateOption || 'known';
                 document.getElementById(dateOption === 'known' ? 'date-known' : 'date-unknown').checked = true;
-                
                 document.getElementById('exam-date-wrapper').classList.toggle('hidden', dateOption === 'unknown');
                 document.getElementById('duration-wrapper').classList.toggle('hidden', dateOption === 'known');
-                
                 if (userPlan.examDate) document.getElementById('exam-date').value = userPlan.examDate;
                 if (userPlan.studyDuration) document.getElementById('study-duration').value = userPlan.studyDuration;
-
-                userPlan.schedule.days.forEach(dayName => {
-                    const diaCheckbox = document.querySelector(`input[name="dia"][value="${dayName}"]`);
-                    if(diaCheckbox) diaCheckbox.checked = true;
-                });
-                 userPlan.schedule.shifts.forEach(shiftName => {
-                    const turnoCheckbox = document.querySelector(`input[name="turno"][value="${shiftName}"]`);
-                    if(turnoCheckbox) turnoCheckbox.checked = true;
-                });
-
-                Object.entries(userPlan.subjects).forEach(([name, data]) => {
-                    addSubjectInputBlock(name, data.topics.join('\n'));
-                });
+                userPlan.schedule.days.forEach(dayName => { const diaCheckbox = document.querySelector(`input[name="dia"][value="${dayName}"]`); if(diaCheckbox) diaCheckbox.checked = true; });
+                userPlan.schedule.shifts.forEach(shiftName => { const turnoCheckbox = document.querySelector(`input[name="turno"][value="${shiftName}"]`); if(turnoCheckbox) turnoCheckbox.checked = true; });
+                Object.entries(userPlan.subjects).forEach(([name, data]) => addSubjectInputBlock(name, data.topics.join('\n')));
             } else {
                 document.getElementById('concurso-nome').value = '';
                 document.getElementById('start-date').valueAsDate = new Date();
                 document.getElementById('date-known').checked = true;
-                 document.getElementById('exam-date-wrapper').classList.remove('hidden');
+                document.getElementById('exam-date-wrapper').classList.remove('hidden');
                 document.getElementById('duration-wrapper').classList.add('hidden');
                 addSubjectInputBlock();
             }
@@ -361,53 +347,31 @@
                 </div>
                 <input type="text" value="${name}" class="subject-name-input w-full px-3 py-2 rounded-md border border-gray-300" placeholder="Ex: Direito Constitucional">
                 <label class="font-semibold text-slate-700 block">Tópicos (um por linha):</label>
-                <textarea class="subject-topics-textarea w-full px-3 py-2 rounded-md border border-gray-300" rows="5" placeholder="1. Direitos Fundamentais\n2. Organização do Estado">${topics}</textarea>
-            `;
+                <textarea class="subject-topics-textarea w-full px-3 py-2 rounded-md border border-gray-300" rows="5" placeholder="1. Direitos Fundamentais\n2. Organização do Estado">${topics}</textarea>`;
             subjectsContainer.appendChild(subjectDiv);
             subjectDiv.querySelector('.remove-subject-btn').addEventListener('click', () => subjectDiv.remove());
         };
 
         const handleConfirmPlan = async () => {
-            // ... (código existente para coletar dados do formulário)
-             const contestName = document.getElementById('concurso-nome').value.trim();
+            const contestName = document.getElementById('concurso-nome').value.trim();
             const startDate = document.getElementById('start-date').value;
             const examDateOption = document.querySelector('input[name="examDateOption"]:checked').value;
             const examDate = examDateOption === 'known' ? document.getElementById('exam-date').value : null;
             const studyDuration = examDateOption === 'unknown' ? document.getElementById('study-duration').value : null;
-
             const days = Array.from(document.querySelectorAll('input[name="dia"]:checked')).map(el => el.value);
             const shifts = Array.from(document.querySelectorAll('input[name="turno"]:checked')).map(el => el.value);
-
-            if (!contestName || !startDate || days.length === 0 || shifts.length === 0 || (examDateOption === 'known' && !examDate)) {
-                showToast('Por favor, preencha todos os campos de informação geral.', true);
-                return;
-            }
-
+            if (!contestName || !startDate || days.length === 0 || shifts.length === 0 || (examDateOption === 'known' && !examDate)) { showToast('Por favor, preencha todos os campos de informação geral.', true); return; }
             const finalSubjects = {};
             document.querySelectorAll('.subject-block').forEach(block => {
                 const name = block.querySelector('.subject-name-input').value.trim();
                 const topics = block.querySelector('.subject-topics-textarea').value.split('\n').map(t => t.trim()).filter(t => t);
                 if (name && topics.length > 0) finalSubjects[name] = { topics };
             });
-
-            if (Object.keys(finalSubjects).length === 0) {
-                showToast('Adicione pelo menos uma matéria com tópicos.', true);
-                return;
-            }
-            
+            if (Object.keys(finalSubjects).length === 0) { showToast('Adicione pelo menos uma matéria com tópicos.', true); return; }
             const progress = userPlan?.progress || {};
-            Object.keys(finalSubjects).forEach(name => {
-                if (!progress[name]) progress[name] = 0;
-            });
-            
-            userPlan = { 
-                contestName, startDate, examDateOption, examDate, studyDuration,
-                schedule: { days, shifts },
-                subjects: finalSubjects, 
-                progress 
-            };
-            
-            await savePlanToFirestore(true); // Pass true to show success message
+            Object.keys(finalSubjects).forEach(name => { if (!progress[name]) progress[name] = 0; });
+            userPlan = { contestName, startDate, examDateOption, examDate, studyDuration, schedule: { days, shifts }, subjects: finalSubjects, progress };
+            await savePlanToFirestore(true);
             hideSetupModal();
             renderPlanView();
         };
@@ -425,7 +389,6 @@
             renderGeneralProgress();
         };
         const generateWeeklySchedule = () => {
-            // ... (código existente, sem alterações)
             const weeklySchedule = {};
             if (!userPlan || !userPlan.schedule) return {};
             const { days, shifts } = userPlan.schedule;
@@ -455,18 +418,12 @@
             return weeklySchedule;
         };
         const renderStudySessions = () => {
-            // ... (código existente, apenas a lógica do botão foi revisada para garantir clareza)
-             const container = document.getElementById('sessoesContainer');
+            const container = document.getElementById('sessoesContainer');
             if(!userPlan.subjects) { container.innerHTML = ''; return; }
             const weeklySchedule = generateWeeklySchedule();
             const colors = ['#3b82f6', '#6366f1', '#ec4899', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#8b5cf6', '#d946ef'];
-            const icons = ['📚', '🧠', '⚖️', '🏛️', '💰', '🤝', '📈', '🧾', '🗺️', '💻', '🔍', '📊', '📜', '🇬🇴'];
             let colorIndex = 0;
-            const subjectStyles = Object.keys(userPlan.subjects).reduce((acc, subject) => {
-                acc[subject] = { color: colors[colorIndex % colors.length], icon: icons[colorIndex % icons.length] };
-                colorIndex++;
-                return acc;
-            }, {});
+            const subjectStyles = Object.keys(userPlan.subjects).reduce((acc, subject) => { acc[subject] = { color: colors[colorIndex % colors.length] }; colorIndex++; return acc; }, {});
             const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long' });
             const capitalizedToday = today.charAt(0).toUpperCase() + today.slice(1);
             container.innerHTML = Object.entries(weeklySchedule).map(([day, slots]) => {
@@ -477,7 +434,6 @@
                     const style = subjectStyles[subject];
                     const isCompleted = (userPlan.progress[subject] || 0) > topicIndex;
                     return `<div class="flex items-start space-x-3 p-3 border-l-4 rounded-r-md bg-white shadow-sm" style="border-color: ${style.color};">
-                        <div class="text-xl pt-1">${style.icon}</div>
                         <div class="flex-1">
                             <div class="flex justify-between items-center"><span class="font-bold text-sm" style="color: ${style.color};">${subject}</span><span class="text-xs font-semibold text-gray-600">${slot.shift}</span></div>
                             <p class="mt-1 text-gray-600 text-sm ${isCompleted ? 'session-completed' : ''}">${topic}</p>
@@ -489,7 +445,6 @@
             }).join('');
         };
         const renderGeneralProgress = () => {
-            // ... (código existente, com adição de atributos para restauração)
             const container = document.getElementById('progressoContainer');
             if(!userPlan || !userPlan.subjects) { container.innerHTML = ''; return; }
             let totalTopics = 0, completedTopics = 0;
@@ -499,13 +454,11 @@
                 const total = data.topics.length;
                 const completed = userPlan.progress[name] || 0;
                 const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-                totalTopics += total;
-                completedTopics += completed;
-                const style = { color: colors[colorIndex % colors.length] };
-                colorIndex++;
-                 return `<div class="accordion-item bg-white/70 backdrop-blur-sm rounded-lg shadow-md overflow-hidden">
+                totalTopics += total; completedTopics += completed;
+                const style = { color: colors[colorIndex % colors.length] }; colorIndex++;
+                return `<div class="accordion-item bg-white/70 backdrop-blur-sm rounded-lg shadow-md overflow-hidden">
                     <div class="accordion-header flex justify-between items-center p-3 cursor-pointer" data-target="#content-${name.replace(/[^a-zA-Z0-9]/g, '')}">
-                        <div class="flex items-center space-x-3"><span class="font-semibold text-sm text-slate-700 flex-1">${name}</span></div>
+                        <span class="font-semibold text-sm text-slate-700 flex-1">${name}</span>
                         <div class="flex items-center space-x-2"><span class="text-xs font-bold text-${style.color}-600">${percentage}%</span><svg class="arrow-icon h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></div>
                     </div>
                     <div class="progress-bar h-1.5 bg-${style.color}-100 w-full"><div class="progress-bar-inner h-full bg-${style.color}-500" style="width: ${percentage}%;"></div></div>
@@ -525,51 +478,87 @@
         };
 
         // --- Event Listeners ---
+        // Auth Listeners
+        const setFeedback = (msg, isError = true) => {
+            const el = document.getElementById('auth-feedback');
+            el.textContent = msg;
+            el.className = `text-sm mt-4 h-4 ${isError ? 'text-red-500' : 'text-green-500'}`;
+            setTimeout(() => el.textContent = '', 4000);
+        };
+        const togglePasswordVisibility = (btn) => {
+            const input = btn.closest('.relative').querySelector('input');
+            const eyeOpen = btn.querySelector('.eye-open');
+            const eyeClosed = btn.querySelector('.eye-closed');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eyeOpen.classList.remove('hidden');
+                eyeClosed.classList.add('hidden');
+            }
+        };
+        document.getElementById('show-signup').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('signup-form'); });
+        document.getElementById('show-login').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('login-form'); });
+        document.querySelectorAll('.toggle-password').forEach(btn => btn.addEventListener('click', () => togglePasswordVisibility(btn)));
+        document.getElementById('login-btn').addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            if(!email || !password) return setFeedback('Preencha e-mail e senha.');
+            signInWithEmailAndPassword(auth, email, password).catch(err => setFeedback('E-mail ou senha inválidos.'));
+        });
+        document.getElementById('signup-btn').addEventListener('click', () => {
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            if (password.length < 6) return setFeedback('A senha deve ter pelo menos 6 caracteres.');
+            createUserWithEmailAndPassword(auth, email, password).catch(err => {
+                if (err.code === 'auth/email-already-in-use') setFeedback('Este e-mail já está em uso.');
+                else setFeedback('Erro ao criar conta.');
+            });
+        });
+
+        // App Listeners
         document.getElementById('addSubjectBtn').addEventListener('click', () => addSubjectInputBlock());
         document.getElementById('confirmPlanBtn').addEventListener('click', handleConfirmPlan);
         document.getElementById('createNewPlanBtn').addEventListener('click', () => openSetupModal(false));
         document.getElementById('editPlanBtn').addEventListener('click', () => openSetupModal(true));
         document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
         
-        // Auth Listeners
-        const setFeedback = (msg, isError = true) => { /* ... */ };
-        document.getElementById('show-signup').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('signup-form'); });
-        document.getElementById('show-login').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('login-form'); });
-        document.getElementById('login-btn').addEventListener('click', () => { /* ... */ });
-        document.getElementById('signup-btn').addEventListener('click', () => { /* ... */ });
-        document.querySelectorAll('.toggle-password').forEach(btn => btn.addEventListener('click', () => togglePasswordVisibility(btn.closest('.relative').querySelector('input'), btn)));
-
-        // Botão para concluir/desfazer sessão
         document.getElementById('sessoesContainer').addEventListener('click', async (e) => {
             const button = e.target.closest('.complete-btn');
             if (button) {
                 const { subject, topicIndex } = button.dataset;
                 const topicIndexInt = parseInt(topicIndex, 10);
-                const isCompleted = (userPlan.progress[subject] || 0) > topicIndexInt;
-                userPlan.progress[subject] = isCompleted ? topicIndexInt : topicIndexInt + 1;
+                const isCurrentlyCompleted = (userPlan.progress[subject] || 0) > topicIndexInt;
+
+                // A lógica aqui é diferente da anterior para funcionar com o DOM
+                if (isCurrentlyCompleted) { // Ação: DESFAZER
+                    userPlan.progress[subject] = topicIndexInt;
+                } else { // Ação: CONCLUIR
+                    userPlan.progress[subject] = topicIndexInt + 1;
+                }
                 
-                await savePlanToFirestore(); // Não mostra toast aqui para não poluir
-                renderStudySessions();
+                button.disabled = true;
+                await savePlanToFirestore(false); // Salva sem mostrar o toast
+                renderStudySessions(); // Re-renderiza a lista para refletir o estado de "Desfazer"
                 renderGeneralProgress();
+                button.disabled = false;
             }
         });
         
-        // Listener para o acordeão E para restaurar tópicos
         document.getElementById('progressoContainer').addEventListener('click', async (e) => {
             const header = e.target.closest('.accordion-header');
             if (header) {
                 const content = document.querySelector(header.dataset.target);
                 header.classList.toggle('open');
                 content.classList.toggle('open');
-                return; // Evita que o clique no header acione a restauração
+                return;
             }
-            
             const topicLi = e.target.closest('li[data-subject]');
             if (topicLi) {
                 const { subject, topicIndex } = topicLi.dataset;
                 const topicIndexInt = parseInt(topicIndex, 10);
-                
-                // Restaura o progresso para o início deste tópico
                 if (userPlan.progress[subject] > topicIndexInt) {
                     userPlan.progress[subject] = topicIndexInt;
                     showToast(`"${subject}" restaurado para o tópico ${topicIndexInt + 1}.`);
@@ -586,7 +575,6 @@
                 document.getElementById('duration-wrapper').classList.toggle('hidden', e.target.value === 'known');
             });
         });
-
     </script>
 </body>
 </html>
