@@ -8,6 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- SDKs do Firebase v9 - Método Global Robusto -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+
     <style>
         body { 
             font-family: 'Inter', sans-serif;
@@ -217,11 +223,13 @@
         </div>
     </div>
     
-    <script type="module">
-        // USANDO OS LINKS OFICIAIS E CORRETOS PARA MÓDULOS DO FIREBASE v9
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    <script>
+    // CORREÇÃO FINAL: Espera o DOM e todos os scripts carregarem antes de executar
+    window.addEventListener('load', () => {
+        // As funções são extraídas diretamente dos namespaces corretos dentro do objeto 'firebase' global.
+        const { initializeApp } = firebase;
+        const { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } = firebase.auth;
+        const { getFirestore, doc, setDoc, getDoc } = firebase.firestore;
 
         const firebaseConfig = {
             apiKey: "AIzaSyCjoAgqr7qbO305HuehDcqbc9WMcCRHupE",
@@ -283,7 +291,7 @@
         
         const loadPlanFromFirestore = async () => {
             if (!userId) return;
-            showLoading('Carregando seu plano...');
+            showLoading('A carregar o seu plano...');
             try {
                 const docRef = doc(db, "userPlans", userId);
                 const docSnap = await getDoc(docRef);
@@ -297,11 +305,11 @@
 
         const savePlanToFirestore = async (showSuccessMessage = false) => {
             if (!userId || !userPlan) return;
-            showLoading('Salvando...');
+            showLoading('A guardar...');
             try {
                 await setDoc(doc(db, "userPlans", userId), userPlan);
-                if (showSuccessMessage) showToast("Plano salvo com sucesso!");
-            } catch(error) { console.error("Erro ao salvar o plano:", error); showToast("Não foi possível salvar seu plano.", true); } 
+                if (showSuccessMessage) showToast("Plano guardado com sucesso!");
+            } catch(error) { console.error("Erro ao guardar o plano:", error); showToast("Não foi possível guardar o seu plano.", true); } 
             finally { hideLoading(); }
         };
         
@@ -557,6 +565,7 @@
                 document.getElementById('duration-wrapper').classList.toggle('hidden', e.target.value === 'known');
             });
         });
+    });
     </script>
 </body>
 </html>
