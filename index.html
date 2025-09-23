@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plano de Estudos Otimizado</title>
+    <title>Plano de Estudos Corrigido</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,6 +33,10 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .auth-form { display: none; }
         .auth-form.active { display: block; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease-out; padding: 0 1rem; }
+        .accordion-content.open { max-height: 1000px; padding: 0.5rem 1rem 1rem 1rem; }
+        .accordion-header .arrow-icon { transition: transform 0.3s ease-out; }
+        .accordion-header.open .arrow-icon { transform: rotate(180deg); }
     </style>
 </head>
 <body class="antialiased text-gray-800 bg-gradient-to-br from-gray-50 to-blue-100 min-h-screen">
@@ -99,29 +103,31 @@
                             <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">Data de Início dos Estudos</label>
                             <input type="date" id="start-date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
                         </div>
-                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Data da Prova</label>
-                            <div class="flex items-center gap-4 custom-radio">
-                                <div><input type="radio" id="date-known" name="examDateOption" value="known" checked><label for="date-known" class="px-3 py-2 rounded-lg cursor-pointer">Definida</label></div>
-                                <div><input type="radio" id="date-unknown" name="examDateOption" value="unknown"><label for="date-unknown" class="px-3 py-2 rounded-lg cursor-pointer">Indefinida</label></div>
+                         <div class="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Data da Prova</label>
+                                <div class="flex items-center gap-4 custom-radio">
+                                    <div><input type="radio" id="date-known" name="examDateOption" value="known" checked><label for="date-known" class="px-3 py-2 rounded-lg cursor-pointer">Definida</label></div>
+                                    <div><input type="radio" id="date-unknown" name="examDateOption" value="unknown"><label for="date-unknown" class="px-3 py-2 rounded-lg cursor-pointer">Indefinida</label></div>
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <div id="exam-date-wrapper" class="mt-2">
-                                <label for="exam-date" class="block text-sm font-medium text-gray-700 mb-1">Data da Prova</label>
-                                <input type="date" id="exam-date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                            <div>
+                                <div id="exam-date-wrapper">
+                                    <label for="exam-date" class="block text-sm font-medium text-gray-700 mb-1">Qual a data?</label>
+                                    <input type="date" id="exam-date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                </div>
+                                <div id="duration-wrapper" class="hidden">
+                                    <label for="study-duration" class="block text-sm font-medium text-gray-700 mb-1">Prazo para Conclusão</label>
+                                    <select id="study-duration" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                        <option value="indeterminate">Indeterminado</option>
+                                        <option value="3">3 Meses</option>
+                                        <option value="6">6 Meses</option>
+                                        <option value="12">1 Ano</option>
+                                        <option value="24">2 Anos</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div id="duration-wrapper" class="hidden mt-2">
-                                <label for="study-duration" class="block text-sm font-medium text-gray-700 mb-1">Prazo para Conclusão</label>
-                                <select id="study-duration" class="w-full px-4 py-2 rounded-lg border border-gray-300">
-                                    <option value="indeterminate">Indeterminado</option>
-                                    <option value="3">3 Meses</option>
-                                    <option value="6">6 Meses</option>
-                                    <option value="12">1 Ano</option>
-                                    <option value="24">2 Anos</option>
-                                </select>
-                            </div>
-                        </div>
+                         </div>
                     </div>
                      <div class="mt-4">
                         <h4 class="text-base font-medium mb-2 text-slate-600">Disponibilidade Semanal</h4>
@@ -157,10 +163,12 @@
                     <h1 id="main-title" class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-slate-800 to-sky-700 bg-clip-text text-transparent pb-2">Seu Plano de Estudos</h1>
                     <p id="headerDate" class="text-slate-500 mt-1 text-base sm:text-lg"></p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mt-4 md:mt-0">
                     <p id="user-email" class="text-sm text-slate-600 font-medium hidden truncate max-w-[200px]"></p>
-                    <button id="editPlanBtn" class="bg-white border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-gray-100 transition-all">Editar Plano</button>
-                    <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-red-600 transition-all">Sair</button>
+                    <div class="flex items-center gap-2">
+                        <button id="editPlanBtn" class="bg-white border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-gray-100 transition-all">Editar Plano</button>
+                        <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-red-600 transition-all">Sair</button>
+                    </div>
                 </div>
             </header>
             <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -216,8 +224,9 @@
         
         // --- Lógica de Autenticação e Dados ---
         onAuthStateChanged(auth, (user) => {
+            hideLoading();
             if (user) {
-                if (userId === user.uid) return; // Evita recarregamentos desnecessários
+                if (userId === user.uid) return;
                 userId = user.uid;
                 hideAuthModal();
                 mainApp.classList.remove('hidden');
@@ -310,14 +319,6 @@
                 document.getElementById('duration-wrapper').classList.add('hidden');
                 addSubjectInputBlock();
             }
-
-            document.querySelectorAll('input[name="examDateOption"]').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    document.getElementById('exam-date-wrapper').classList.toggle('hidden', e.target.value === 'unknown');
-                    document.getElementById('duration-wrapper').classList.toggle('hidden', e.target.value === 'known');
-                });
-            });
-
             showSetupModal();
         };
 
@@ -396,6 +397,7 @@
         };
         const generateWeeklySchedule = () => {
             const weeklySchedule = {};
+            if (!userPlan || !userPlan.schedule) return {};
             const { days, shifts } = userPlan.schedule;
             days.forEach(day => { weeklySchedule[day] = shifts.map(shift => ({ shift, session: null })); });
             const subjectsToStudy = Object.keys(userPlan.subjects)
@@ -424,7 +426,7 @@
         };
         const renderStudySessions = () => {
             const container = document.getElementById('sessoesContainer');
-            if(!userPlan.subjects) return;
+            if(!userPlan.subjects) { container.innerHTML = ''; return; }
             const weeklySchedule = generateWeeklySchedule();
             const colors = ['#3b82f6', '#6366f1', '#ec4899', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#8b5cf6', '#d946ef'];
             const icons = ['📚', '🧠', '⚖️', '🏛️', '💰', '🤝', '📈', '🧾', '🗺️', '💻', '🔍', '📊', '📜', '🇬🇴'];
@@ -457,7 +459,7 @@
         };
         const renderGeneralProgress = () => {
             const container = document.getElementById('progressoContainer');
-            if(!userPlan || !userPlan.subjects) return;
+            if(!userPlan || !userPlan.subjects) { container.innerHTML = ''; return; }
             let totalTopics = 0, completedTopics = 0;
             const colors = ['blue', 'indigo', 'pink', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'purple', 'fuchsia'];
             const icons = ['📚', '🧠', '⚖️', '🏛️', '💰', '🤝', '📈', '🧾', '🗺️', '💻', '🔍', '📊', '📜', '🇬🇴'];
@@ -470,12 +472,15 @@
                 completedTopics += completed;
                 const style = { color: colors[colorIndex % colors.length], icon: icons[colorIndex % icons.length] };
                 colorIndex++;
-                return `<div class="bg-white/70 backdrop-blur-sm rounded-lg shadow-md overflow-hidden">
-                    <div class="flex justify-between items-center p-3">
+                 return `<div class="accordion-item bg-white/70 backdrop-blur-sm rounded-lg shadow-md overflow-hidden">
+                    <div class="accordion-header flex justify-between items-center p-3 cursor-pointer" data-target="#content-${name.replace(/[^a-zA-Z0-9]/g, '')}">
                         <div class="flex items-center space-x-3"><span class="text-lg">${style.icon}</span><span class="font-semibold text-sm text-slate-700 flex-1">${name}</span></div>
-                        <div class="flex items-center space-x-2"><span class="text-xs font-bold text-${style.color}-600">${percentage}%</span></div>
+                        <div class="flex items-center space-x-2"><span class="text-xs font-bold text-${style.color}-600">${percentage}%</span><svg class="arrow-icon h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></div>
                     </div>
                     <div class="progress-bar h-1.5 bg-${style.color}-100 w-full"><div class="progress-bar-inner h-full bg-${style.color}-500" style="width: ${percentage}%;"></div></div>
+                    <div id="content-${name.replace(/[^a-zA-Z0-9]/g, '')}" class="accordion-content">
+                        <ul class="text-xs text-slate-600 space-y-1 py-2">${data.topics.map((topic, index) => `<li class="flex items-start gap-2 ${index < completed ? 'text-slate-400 line-through' : ''}"><span class="mt-0.5">${index < completed ? '✅' : '▪️'}</span><span>${index + 1}. ${topic}</span></li>`).join('')}</ul>
+                    </div>
                 </div>`;
             }).join('');
             const totalPercentage = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
@@ -537,10 +542,7 @@
                 });
         });
         
-        document.querySelectorAll('.toggle-password').forEach(btn => {
-            btn.addEventListener('click', () => togglePasswordVisibility(btn));
-        });
-
+        document.querySelectorAll('.toggle-password').forEach(btn => btn.addEventListener('click', () => togglePasswordVisibility(btn)));
         document.getElementById('addSubjectBtn').addEventListener('click', () => addSubjectInputBlock());
         document.getElementById('confirmPlanBtn').addEventListener('click', handleConfirmPlan);
 
@@ -549,12 +551,21 @@
             if (button) {
                 const { subject, topicIndex } = button.dataset;
                 const topicIndexInt = parseInt(topicIndex, 10);
-                const isCompleted = userPlan.progress[subject] > topicIndexInt;
+                const isCompleted = (userPlan.progress[subject] || 0) > topicIndexInt;
                 userPlan.progress[subject] = isCompleted ? topicIndexInt : topicIndexInt + 1;
-                button.disabled = true; // Desabilita o botão para evitar cliques duplos
-                await savePlanToFirestore(); // Salva o progresso na nuvem
+                button.disabled = true;
+                await savePlanToFirestore();
                 renderStudySessions();
                 renderGeneralProgress();
+            }
+        });
+        
+        document.getElementById('progressoContainer').addEventListener('click', (e) => {
+            const header = e.target.closest('.accordion-header');
+            if (header) {
+                const content = document.querySelector(header.dataset.target);
+                header.classList.toggle('open');
+                content.classList.toggle('open');
             }
         });
     </script>
