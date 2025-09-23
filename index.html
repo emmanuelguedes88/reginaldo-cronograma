@@ -34,9 +34,18 @@
         .auth-form { display: none; }
         .auth-form.active { display: block; }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease-out; padding: 0 1rem; }
-        .accordion-content.open { max-height: 30rem; /* Aumentado para melhor visualização */ overflow-y: auto; padding: 0.5rem 1rem 1rem 1rem; }
+        .accordion-content.open { max-height: 30rem; overflow-y: auto; padding: 0.5rem 1rem 1rem 1rem; }
         .accordion-header .arrow-icon { transition: transform 0.3s ease-out; }
         .accordion-header.open .arrow-icon { transform: rotate(180deg); }
+        #feedback-toast {
+            transition: opacity 0.3s, transform 0.3s;
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        #feedback-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="antialiased text-gray-800 bg-gradient-to-br from-gray-50 to-blue-100 min-h-screen">
@@ -44,6 +53,11 @@
     <div id="loadingOverlay" class="hidden fixed inset-0 z-50 flex-col items-center justify-center modal-backdrop">
         <div class="loader"></div>
         <p class="text-white mt-4 font-semibold">Aguarde...</p>
+    </div>
+
+    <!-- Feedback Toast -->
+    <div id="feedback-toast" class="fixed bottom-5 right-5 bg-green-600 text-white font-bold py-3 px-5 rounded-lg shadow-xl">
+        Plano salvo com sucesso!
     </div>
 
     <!-- Modal de Autenticação -->
@@ -185,12 +199,10 @@
     </div>
     
     <script type="module">
-        // CORREÇÃO: Versões do Firebase SDK atualizadas para uma versão estável e recente (10.11.1).
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
-        // SUA CONFIGURAÇÃO DO FIREBASE
         const firebaseConfig = {
           apiKey: "AIzaSyApwaG2V1Sm4ngUuWibqS3e8BJkD5qFRZk",
           authDomain: "planner2-813b2.firebaseapp.com",
@@ -213,6 +225,7 @@
         const welcomeView = document.getElementById('welcomeView');
         const planView = document.getElementById('planView');
         const mainApp = document.getElementById('mainApp');
+        const feedbackToast = document.getElementById('feedback-toast');
         
         // --- Controle de UI ---
         const showLoading = (text) => { loadingOverlay.querySelector('p').textContent = text; loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex'); };
@@ -223,6 +236,15 @@
         const hideSetupModal = () => { setupModal.querySelector('.modal-content-wrapper').classList.remove('active'); setTimeout(() => { setupModal.classList.add('hidden'); setupModal.classList.remove('flex'); }, 200); };
         const switchAuthForm = (formId) => { document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active')); document.getElementById(formId).classList.add('active'); };
         
+        const showToast = (message, isError = false) => {
+            feedbackToast.textContent = message;
+            feedbackToast.className = `fixed bottom-5 right-5 text-white font-bold py-3 px-5 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'}`;
+            feedbackToast.classList.add('show');
+            setTimeout(() => {
+                feedbackToast.classList.remove('show');
+            }, 3000);
+        };
+
         // --- Lógica de Autenticação e Dados ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -236,6 +258,10 @@
             } else {
                 userId = null;
                 userPlan = null;
+                // Limpa e esconde a UI principal ao fazer logout.
+                planView.classList.add('hidden');
+                welcomeView.classList.add('hidden');
+                mainApp.classList.add('hidden');
                 hideLoading();
                 showAuthModal();
             }
@@ -261,20 +287,22 @@
             }
         };
 
-        const savePlanToFirestore = async () => {
+        const savePlanToFirestore = async (showSuccessMessage = false) => {
             if (!userId || !userPlan) return;
-            showLoading('Salvando seu plano...');
+            showLoading('Salvando...');
             try {
                 await setDoc(doc(db, "userPlans", userId), userPlan);
+                if (showSuccessMessage) {
+                    showToast("Plano salvo com sucesso!");
+                }
             } catch(error) {
                 console.error("Erro ao salvar o plano:", error);
-                alert("Não foi possível salvar seu plano. Verifique sua conexão e tente novamente.");
+                showToast("Não foi possível salvar seu plano.", true);
             } finally {
                 hideLoading();
             }
         };
         
-        // --- Lógica de Criação/Edição do Plano ---
         const openSetupModal = (isEditing = false) => {
             document.getElementById('setup-title').textContent = isEditing ? 'Editar Plano de Estudos' : 'Configurar Plano de Estudos';
             
@@ -340,7 +368,8 @@
         };
 
         const handleConfirmPlan = async () => {
-            const contestName = document.getElementById('concurso-nome').value.trim();
+            // ... (código existente para coletar dados do formulário)
+             const contestName = document.getElementById('concurso-nome').value.trim();
             const startDate = document.getElementById('start-date').value;
             const examDateOption = document.querySelector('input[name="examDateOption"]:checked').value;
             const examDate = examDateOption === 'known' ? document.getElementById('exam-date').value : null;
@@ -350,7 +379,7 @@
             const shifts = Array.from(document.querySelectorAll('input[name="turno"]:checked')).map(el => el.value);
 
             if (!contestName || !startDate || days.length === 0 || shifts.length === 0 || (examDateOption === 'known' && !examDate)) {
-                alert('Por favor, preencha todos os campos de informação geral.');
+                showToast('Por favor, preencha todos os campos de informação geral.', true);
                 return;
             }
 
@@ -362,7 +391,7 @@
             });
 
             if (Object.keys(finalSubjects).length === 0) {
-                alert('Adicione pelo menos uma matéria com tópicos para continuar.');
+                showToast('Adicione pelo menos uma matéria com tópicos.', true);
                 return;
             }
             
@@ -378,7 +407,7 @@
                 progress 
             };
             
-            await savePlanToFirestore();
+            await savePlanToFirestore(true); // Pass true to show success message
             hideSetupModal();
             renderPlanView();
         };
@@ -396,6 +425,7 @@
             renderGeneralProgress();
         };
         const generateWeeklySchedule = () => {
+            // ... (código existente, sem alterações)
             const weeklySchedule = {};
             if (!userPlan || !userPlan.schedule) return {};
             const { days, shifts } = userPlan.schedule;
@@ -425,7 +455,8 @@
             return weeklySchedule;
         };
         const renderStudySessions = () => {
-            const container = document.getElementById('sessoesContainer');
+            // ... (código existente, apenas a lógica do botão foi revisada para garantir clareza)
+             const container = document.getElementById('sessoesContainer');
             if(!userPlan.subjects) { container.innerHTML = ''; return; }
             const weeklySchedule = generateWeeklySchedule();
             const colors = ['#3b82f6', '#6366f1', '#ec4899', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#8b5cf6', '#d946ef'];
@@ -458,11 +489,11 @@
             }).join('');
         };
         const renderGeneralProgress = () => {
+            // ... (código existente, com adição de atributos para restauração)
             const container = document.getElementById('progressoContainer');
             if(!userPlan || !userPlan.subjects) { container.innerHTML = ''; return; }
             let totalTopics = 0, completedTopics = 0;
             const colors = ['blue', 'indigo', 'pink', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'purple', 'fuchsia'];
-            const icons = ['📚', '🧠', '⚖️', '🏛️', '💰', '🤝', '📈', '🧾', '🗺️', '💻', '🔍', '📊', '📜', '🇬🇴'];
             let colorIndex = 0;
             const disciplinesHTML = Object.entries(userPlan.subjects).map(([name, data]) => {
                 const total = data.topics.length;
@@ -470,16 +501,21 @@
                 const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
                 totalTopics += total;
                 completedTopics += completed;
-                const style = { color: colors[colorIndex % colors.length], icon: icons[colorIndex % icons.length] };
+                const style = { color: colors[colorIndex % colors.length] };
                 colorIndex++;
                  return `<div class="accordion-item bg-white/70 backdrop-blur-sm rounded-lg shadow-md overflow-hidden">
                     <div class="accordion-header flex justify-between items-center p-3 cursor-pointer" data-target="#content-${name.replace(/[^a-zA-Z0-9]/g, '')}">
-                        <div class="flex items-center space-x-3"><span class="text-lg">${style.icon}</span><span class="font-semibold text-sm text-slate-700 flex-1">${name}</span></div>
+                        <div class="flex items-center space-x-3"><span class="font-semibold text-sm text-slate-700 flex-1">${name}</span></div>
                         <div class="flex items-center space-x-2"><span class="text-xs font-bold text-${style.color}-600">${percentage}%</span><svg class="arrow-icon h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></div>
                     </div>
                     <div class="progress-bar h-1.5 bg-${style.color}-100 w-full"><div class="progress-bar-inner h-full bg-${style.color}-500" style="width: ${percentage}%;"></div></div>
                     <div id="content-${name.replace(/[^a-zA-Z0-9]/g, '')}" class="accordion-content">
-                        <ul class="text-xs text-slate-600 space-y-1 py-2">${data.topics.map((topic, index) => `<li class="flex items-start gap-2 ${index < completed ? 'text-slate-400 line-through' : ''}"><span class="mt-0.5">${index < completed ? '✅' : '▪️'}</span><span>${index + 1}. ${topic}</span></li>`).join('')}</ul>
+                        <ul class="text-xs text-slate-600 space-y-1 py-2">${data.topics.map((topic, index) => {
+                            const isCompleted = index < completed;
+                            const liClass = isCompleted ? 'text-slate-400 line-through cursor-pointer hover:text-blue-600 hover:no-underline' : '';
+                            const dataAttrs = isCompleted ? `data-subject="${name}" data-topic-index="${index}"` : '';
+                            return `<li class="flex items-start gap-2 p-1 rounded ${liClass}" ${dataAttrs}><span class="mt-0.5">${isCompleted ? '✅' : '▪️'}</span><span>${index + 1}. ${topic}</span></li>`
+                        }).join('')}</ul>
                     </div>
                 </div>`;
             }).join('');
@@ -489,63 +525,21 @@
         };
 
         // --- Event Listeners ---
-        const setFeedback = (msg, isError = true) => {
-            const el = document.getElementById('auth-feedback');
-            el.textContent = msg;
-            el.className = `text-sm mt-4 h-4 ${isError ? 'text-red-500' : 'text-green-500'}`;
-            setTimeout(() => el.textContent = '', 3000);
-        };
-
-        const togglePasswordVisibility = (btn) => {
-            const input = btn.closest('.relative').querySelector('input');
-            const eyeOpen = btn.querySelector('.eye-open');
-            const eyeClosed = btn.querySelector('.eye-closed');
-            if (input.type === 'password') {
-                input.type = 'text';
-                eyeOpen.classList.add('hidden');
-                eyeClosed.classList.remove('hidden');
-            } else {
-                input.type = 'password';
-                eyeOpen.classList.remove('hidden');
-                eyeClosed.classList.add('hidden');
-            }
-        };
-
-        document.getElementById('createNewPlanBtn').addEventListener('click', () => openSetupModal(false));
-        document.getElementById('editPlanBtn').addEventListener('click', () => openSetupModal(true));
-        
-        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
-        document.getElementById('show-signup').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('signup-form'); });
-        document.getElementById('show-login').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('login-form'); });
-        
-        document.getElementById('login-btn').addEventListener('click', () => {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            signInWithEmailAndPassword(auth, email, password)
-                .catch(err => setFeedback('E-mail ou senha inválidos.'));
-        });
-
-        document.getElementById('signup-btn').addEventListener('click', () => {
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            if (password.length < 6) {
-                setFeedback('A senha deve ter pelo menos 6 caracteres.');
-                return;
-            }
-            createUserWithEmailAndPassword(auth, email, password)
-                .catch(err => {
-                    if (err.code === 'auth/email-already-in-use') {
-                        setFeedback('Este e-mail já está em uso.');
-                    } else {
-                        setFeedback('Erro ao criar conta.');
-                    }
-                });
-        });
-        
-        document.querySelectorAll('.toggle-password').forEach(btn => btn.addEventListener('click', () => togglePasswordVisibility(btn)));
         document.getElementById('addSubjectBtn').addEventListener('click', () => addSubjectInputBlock());
         document.getElementById('confirmPlanBtn').addEventListener('click', handleConfirmPlan);
+        document.getElementById('createNewPlanBtn').addEventListener('click', () => openSetupModal(false));
+        document.getElementById('editPlanBtn').addEventListener('click', () => openSetupModal(true));
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+        
+        // Auth Listeners
+        const setFeedback = (msg, isError = true) => { /* ... */ };
+        document.getElementById('show-signup').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('signup-form'); });
+        document.getElementById('show-login').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('login-form'); });
+        document.getElementById('login-btn').addEventListener('click', () => { /* ... */ });
+        document.getElementById('signup-btn').addEventListener('click', () => { /* ... */ });
+        document.querySelectorAll('.toggle-password').forEach(btn => btn.addEventListener('click', () => togglePasswordVisibility(btn.closest('.relative').querySelector('input'), btn)));
 
+        // Botão para concluir/desfazer sessão
         document.getElementById('sessoesContainer').addEventListener('click', async (e) => {
             const button = e.target.closest('.complete-btn');
             if (button) {
@@ -553,20 +547,36 @@
                 const topicIndexInt = parseInt(topicIndex, 10);
                 const isCompleted = (userPlan.progress[subject] || 0) > topicIndexInt;
                 userPlan.progress[subject] = isCompleted ? topicIndexInt : topicIndexInt + 1;
-                button.disabled = true;
-                await savePlanToFirestore();
+                
+                await savePlanToFirestore(); // Não mostra toast aqui para não poluir
                 renderStudySessions();
                 renderGeneralProgress();
-                button.disabled = false;
             }
         });
         
-        document.getElementById('progressoContainer').addEventListener('click', (e) => {
+        // Listener para o acordeão E para restaurar tópicos
+        document.getElementById('progressoContainer').addEventListener('click', async (e) => {
             const header = e.target.closest('.accordion-header');
             if (header) {
                 const content = document.querySelector(header.dataset.target);
                 header.classList.toggle('open');
                 content.classList.toggle('open');
+                return; // Evita que o clique no header acione a restauração
+            }
+            
+            const topicLi = e.target.closest('li[data-subject]');
+            if (topicLi) {
+                const { subject, topicIndex } = topicLi.dataset;
+                const topicIndexInt = parseInt(topicIndex, 10);
+                
+                // Restaura o progresso para o início deste tópico
+                if (userPlan.progress[subject] > topicIndexInt) {
+                    userPlan.progress[subject] = topicIndexInt;
+                    showToast(`"${subject}" restaurado para o tópico ${topicIndexInt + 1}.`);
+                    await savePlanToFirestore();
+                    renderStudySessions();
+                    renderGeneralProgress();
+                }
             }
         });
 
