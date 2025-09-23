@@ -34,7 +34,7 @@
         .auth-form { display: none; }
         .auth-form.active { display: block; }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease-out; padding: 0 1rem; }
-        .accordion-content.open { max-height: 1000px; padding: 0.5rem 1rem 1rem 1rem; }
+        .accordion-content.open { max-height: 30rem; /* Aumentado para melhor visualização */ overflow-y: auto; padding: 0.5rem 1rem 1rem 1rem; }
         .accordion-header .arrow-icon { transition: transform 0.3s ease-out; }
         .accordion-header.open .arrow-icon { transform: rotate(180deg); }
     </style>
@@ -103,9 +103,9 @@
                             <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">Data de Início dos Estudos</label>
                             <input type="date" id="start-date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
                         </div>
-                         <div class="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                         <div class="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 items-end">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Data da Prova</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Data da Prova</label>
                                 <div class="flex items-center gap-4 custom-radio">
                                     <div><input type="radio" id="date-known" name="examDateOption" value="known" checked><label for="date-known" class="px-3 py-2 rounded-lg cursor-pointer">Definida</label></div>
                                     <div><input type="radio" id="date-unknown" name="examDateOption" value="unknown"><label for="date-unknown" class="px-3 py-2 rounded-lg cursor-pointer">Indefinida</label></div>
@@ -165,7 +165,7 @@
                 </div>
                 <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mt-4 md:mt-0">
                     <p id="user-email" class="text-sm text-slate-600 font-medium hidden truncate max-w-[200px]"></p>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-shrink-0">
                         <button id="editPlanBtn" class="bg-white border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-gray-100 transition-all">Editar Plano</button>
                         <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-red-600 transition-all">Sair</button>
                     </div>
@@ -224,7 +224,6 @@
         
         // --- Lógica de Autenticação e Dados ---
         onAuthStateChanged(auth, (user) => {
-            hideLoading();
             if (user) {
                 if (userId === user.uid) return;
                 userId = user.uid;
@@ -268,7 +267,7 @@
                 await setDoc(doc(db, "userPlans", userId), userPlan);
             } catch(error) {
                 console.error("Erro ao salvar o plano:", error);
-                alert("Não foi possível salvar seu plano. Tente novamente.");
+                alert("Não foi possível salvar seu plano. Verifique sua conexão e tente novamente.");
             } finally {
                 hideLoading();
             }
@@ -444,13 +443,13 @@
                     if (!slot.session) return `<div class="p-4 rounded-lg bg-gray-100 text-sm text-gray-500">${slot.shift}: Descanso</div>`;
                     const { subject, topic, topicIndex } = slot.session;
                     const style = subjectStyles[subject];
-                    const isCompleted = userPlan.progress[subject] > topicIndex;
+                    const isCompleted = (userPlan.progress[subject] || 0) > topicIndex;
                     return `<div class="flex items-start space-x-3 p-3 border-l-4 rounded-r-md bg-white shadow-sm" style="border-color: ${style.color};">
                         <div class="text-xl pt-1">${style.icon}</div>
                         <div class="flex-1">
                             <div class="flex justify-between items-center"><span class="font-bold text-sm" style="color: ${style.color};">${subject}</span><span class="text-xs font-semibold text-gray-600">${slot.shift}</span></div>
                             <p class="mt-1 text-gray-600 text-sm ${isCompleted ? 'session-completed' : ''}">${topic}</p>
-                            <div class="mt-2 text-right"><button class="complete-btn text-xs font-medium py-1 px-3 rounded-md transition-all ${isCompleted ? 'bg-gray-400 text-white' : 'bg-green-500 text-white hover:bg-green-600'}" data-subject="${subject}" data-topic-index="${topicIndex}">${isCompleted ? '✔️ Refazer' : 'Concluir'}</button></div>
+                            <div class="mt-2 text-right"><button class="complete-btn text-xs font-medium py-1 px-3 rounded-md transition-all ${isCompleted ? 'bg-gray-400 text-white hover:bg-gray-500' : 'bg-green-500 text-white hover:bg-green-600'}" data-subject="${subject}" data-topic-index="${topicIndex}">${isCompleted ? '✔️ Desfazer' : 'Concluir'}</button></div>
                         </div>
                     </div>`;
                 }).join('<div class="h-2"></div>');
@@ -557,6 +556,7 @@
                 await savePlanToFirestore();
                 renderStudySessions();
                 renderGeneralProgress();
+                button.disabled = false;
             }
         });
         
@@ -568,6 +568,14 @@
                 content.classList.toggle('open');
             }
         });
+
+        document.querySelectorAll('input[name="examDateOption"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                document.getElementById('exam-date-wrapper').classList.toggle('hidden', e.target.value === 'unknown');
+                document.getElementById('duration-wrapper').classList.toggle('hidden', e.target.value === 'known');
+            });
+        });
+
     </script>
 </body>
 </html>
