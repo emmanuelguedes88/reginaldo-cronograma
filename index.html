@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Estudos Otimizado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .modal-backdrop { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); }
+        .current-day-highlight { box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); border: 2px solid #3b82f6; }
+        .progress-bar-inner { transition: width 0.5s ease-in-out; }
+        .custom-checkbox input[type="checkbox"] { display: none; }
+        .custom-checkbox label { border: 2px solid #d1d5db; background-color: #f9fafb; color: #6b7280; transition: all 0.2s ease; }
+        .custom-checkbox input[type="checkbox"]:checked + label { background-color: #3b82f6; border-color: #2563eb; color: white; transform: scale(1.05); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+        .custom-radio input[type="radio"] { display: none; }
+        .custom-radio label { border: 2px solid #d1d5db; background-color: #f9fafb; color: #6b7280; transition: all 0.2s ease; }
+        .custom-radio input[type="radio"]:checked + label { background-color: #3b82f6; border-color: #2563eb; color: white; }
+        .session-completed { opacity: 0.6; text-decoration: line-through; }
+        .modal-content-wrapper { transform: scale(0.95); opacity: 0; transition: transform 0.2s ease-out, opacity 0.2s ease-out; }
+        .modal-content-wrapper.active { transform: scale(1); opacity: 1; }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+    </style>
+</head>
+<body class="antialiased text-gray-800 bg-gradient-to-br from-gray-50 to-blue-100 min-h-screen">
+
+    <div id="loadingOverlay" class="hidden fixed inset-0 z-50 flex-col items-center justify-center modal-backdrop">
+        <div class="loader"></div>
+        <p class="text-white mt-4 font-semibold">Aguarde...</p>
+    </div>
+
+    <!-- Modal de Autenticação -->
+    <div id="authModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center modal-content-wrapper" id="authContent">
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form active">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Bem-vindo de volta!</h2>
+                <p class="text-slate-500 mb-6">Faça login para acessar seu plano.</p>
+                <div class="space-y-4 text-left">
+                    <input type="email" id="login-email" placeholder="Seu e-mail" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="relative">
+                        <input type="password" id="login-password" placeholder="Sua senha" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="button" class="toggle-password absolute inset-y-0 right-0 px-3 flex items-center text-gray-500">
+                            <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-3.11 3.563-5.518 6.814-6.166M9 9a3 3 0 116 0 3 3 0 01-6 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 2l20 20" /></svg>
+                        </button>
+                    </div>
+                </div>
+                <button id="login-btn" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all">Entrar</button>
+                <p class="text-sm text-slate-500 mt-4">Não tem uma conta? <a href="#" id="show-signup" class="font-semibold text-blue-600 hover:underline">Cadastre-se</a></p>
+            </div>
+            <!-- Signup Form -->
+            <div id="signup-form" class="auth-form">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Crie sua Conta</h2>
+                <p class="text-slate-500 mb-6">É rápido e fácil para salvar seu progresso.</p>
+                <div class="space-y-4 text-left">
+                    <input type="email" id="signup-email" placeholder="Seu e-mail" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <div class="relative">
+                        <input type="password" id="signup-password" placeholder="Crie uma senha (mín. 6 caracteres)" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <button type="button" class="toggle-password absolute inset-y-0 right-0 px-3 flex items-center text-gray-500">
+                            <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-3.11 3.563-5.518 6.814-6.166M9 9a3 3 0 116 0 3 3 0 01-6 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 2l20 20" /></svg>
+                        </button>
+                    </div>
+                </div>
+                <button id="signup-btn" class="mt-6 w-full bg-orange-600 text-white font-bold py-3 rounded-lg hover:bg-orange-700 transition-all">Cadastrar</button>
+                <p class="text-sm text-slate-500 mt-4">Já tem uma conta? <a href="#" id="show-login" class="font-semibold text-orange-600 hover:underline">Faça login</a></p>
+            </div>
+             <p id="auth-feedback" class="text-sm mt-4 h-4"></p>
+        </div>
+    </div>
+    
+    <!-- Modal de Configuração do Plano -->
+    <div id="setupModal" class="hidden fixed inset-0 z-40 flex items-start justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        <div class="modal-content-wrapper bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 w-full max-w-4xl my-8">
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 mb-6 text-center">Configurar Plano de Estudos</h1>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-3 text-slate-700 border-b pb-2">1. Informações Gerais</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mt-4">
+                        <div>
+                            <label for="concurso-nome" class="block text-sm font-medium text-gray-700 mb-1">Nome do Concurso</label>
+                            <input type="text" id="concurso-nome" placeholder="Ex: Auditor-Fiscal da Receita" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                        </div>
+                        <div>
+                            <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">Data de Início dos Estudos</label>
+                            <input type="date" id="start-date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                        </div>
+                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data da Prova</label>
+                            <div class="flex items-center gap-4 custom-radio">
+                                <div><input type="radio" id="date-known" name="examDateOption" value="known" checked><label for="date-known" class="px-3 py-2 rounded-lg cursor-pointer">Definida</label></div>
+                                <div><input type="radio" id="date-unknown" name="examDateOption" value="unknown"><label for="date-unknown" class="px-3 py-2 rounded-lg cursor-pointer">Indefinida</label></div>
+                            </div>
+                        </div>
+                        <div id="exam-date-wrapper">
+                            <label for="exam-date" class="block text-sm font-medium text-gray-700 mb-1 invisible">Data da Prova</label>
+                            <input type="date" id="exam-date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                        </div>
+                        <div id="duration-wrapper" class="hidden">
+                             <label for="study-duration" class="block text-sm font-medium text-gray-700 mb-1 invisible">Duração</label>
+                             <select id="study-duration" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                <option value="3">3 Meses</option>
+                                <option value="6">6 Meses</option>
+                                <option value="12">1 Ano</option>
+                                <option value="24">2 Anos</option>
+                            </select>
+                        </div>
+                    </div>
+                     <div class="mt-4">
+                        <h4 class="text-base font-medium mb-2 text-slate-600">Disponibilidade Semanal</h4>
+                        <div id="dias-semana-grid" class="grid grid-cols-4 md:grid-cols-7 gap-2 custom-checkbox"></div>
+                    </div>
+                     <div class="mt-4">
+                        <h4 class="text-base font-medium mb-2 text-slate-600">Turnos de Estudo</h4>
+                        <div id="turnos-estudo-grid" class="grid grid-cols-3 gap-2 custom-checkbox"></div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-3 text-slate-700 border-b pb-2">2. Matérias e Conteúdo Programático</h3>
+                    <div id="subjectsContainer" class="space-y-4 mt-4 max-h-[40vh] overflow-y-auto pr-2"></div>
+                    <button id="addSubjectBtn" class="mt-4 w-full border-2 border-dashed border-blue-400 text-blue-600 font-semibold py-2 rounded-lg hover:bg-blue-100 transition-all">+ Adicionar Matéria</button>
+                </div>
+            </div>
+            <button id="confirmPlanBtn" class="mt-8 w-full bg-green-600 text-white font-bold py-3 sm:py-4 rounded-lg text-lg transition-all hover:bg-green-700">Salvar Plano e Iniciar Estudos</button>
+        </div>
+    </div>
+
+    <!-- Interface Principal -->
+    <div id="mainApp" class="hidden container mx-auto p-4 md:p-8">
+        <div id="welcomeView">
+            <div class="text-center py-16">
+                 <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-slate-800 to-sky-700 bg-clip-text text-transparent pb-2">Nenhum plano de estudos encontrado.</h1>
+                 <p class="text-slate-500 mt-4 text-lg max-w-2xl mx-auto">Pronto para organizar seus estudos e conquistar a aprovação? Comece criando seu plano.</p>
+                 <button id="createNewPlanBtn" class="mt-8 bg-blue-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-transform hover:scale-105">Criar Plano de Estudos</button>
+            </div>
+        </div>
+        <div id="planView" class="hidden">
+            <header class="flex flex-col md:flex-row justify-between items-center mb-8 pb-6 border-b border-gray-200/80 gap-4">
+                <div class="text-center md:text-left flex-shrink-0">
+                    <h1 id="main-title" class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-slate-800 to-sky-700 bg-clip-text text-transparent pb-2">Seu Plano de Estudos</h1>
+                    <p id="headerDate" class="text-slate-500 mt-1 text-base sm:text-lg"></p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <p id="user-email" class="text-sm text-slate-600 font-medium hidden"></p>
+                    <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-red-600 transition-all">Sair</button>
+                </div>
+            </header>
+            <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <section class="lg:col-span-2">
+                    <h2 class="text-2xl font-bold mb-4 text-slate-700">Plano de Estudos da Semana</h2>
+                    <div id="sessoesContainer" class="space-y-6"></div>
+                </section>
+                <section>
+                    <h2 class="text-2xl font-bold mb-4 text-slate-700">Progresso Geral</h2>
+                    <div id="progressoContainer" class="space-y-4"></div>
+                </section>
+            </main>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // SUA CONFIGURAÇÃO DO FIREBASE
+        const firebaseConfig = {
+          apiKey: "AIzaSyApwaG2V1Sm4ngUuWibqS3e8BJkD5qFRZk",
+          authDomain: "planner2-813b2.firebaseapp.com",
+          projectId: "planner2-813b2",
+          storageBucket: "planner2-813b2.firebasestorage.app",
+          messagingSenderId: "171560326149",
+          appId: "1:171560326149:web:eaf7bc39915088c4a2f86c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let userPlan = null;
+        let userId = null;
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const authModal = document.getElementById('authModal');
+        const setupModal = document.getElementById('setupModal');
+        const welcomeView = document.getElementById('welcomeView');
+        const planView = document.getElementById('planView');
+        const mainApp = document.getElementById('mainApp');
+        
+        // --- Controle de UI ---
+        const showLoading = (text) => { loadingOverlay.querySelector('p').textContent = text; loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex'); };
+        const hideLoading = () => { loadingOverlay.classList.add('hidden'); loadingOverlay.classList.remove('flex'); };
+        const showAuthModal = () => { authModal.classList.remove('hidden'); authModal.classList.add('flex'); setTimeout(() => authModal.querySelector('.modal-content-wrapper').classList.add('active'), 50); };
+        const hideAuthModal = () => { authModal.querySelector('.modal-content-wrapper').classList.remove('active'); setTimeout(() => { authModal.classList.add('hidden'); authModal.classList.remove('flex'); }, 200); };
+        const showSetupModal = () => { setupModal.classList.remove('hidden'); setupModal.classList.add('flex'); setTimeout(() => setupModal.querySelector('.modal-content-wrapper').classList.add('active'), 50); };
+        const hideSetupModal = () => { setupModal.querySelector('.modal-content-wrapper').classList.remove('active'); setTimeout(() => { setupModal.classList.add('hidden'); setupModal.classList.remove('flex'); }, 200); };
+        const switchAuthForm = (formId) => { document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active')); document.getElementById(formId).classList.add('active'); };
+        
+        // --- Lógica de Autenticação e Dados ---
+        onAuthStateChanged(auth, (user) => {
+            hideLoading();
+            if (user) {
+                userId = user.uid;
+                hideAuthModal();
+                mainApp.classList.remove('hidden');
+                document.getElementById('user-email').textContent = user.email;
+                document.getElementById('user-email').classList.remove('hidden');
+                loadPlanFromFirestore(user);
+            } else {
+                userId = null;
+                userPlan = null;
+                mainApp.classList.add('hidden');
+                showAuthModal();
+            }
+        });
+        
+        const loadPlanFromFirestore = (user) => {
+            if (!user) return;
+            showLoading('Carregando seu plano...');
+            const docRef = doc(db, "userPlans", user.uid);
+            getDoc(docRef).then(docSnap => {
+                if (docSnap.exists()) {
+                    userPlan = docSnap.data();
+                    renderPlanView();
+                } else {
+                    renderWelcomeView();
+                }
+            }).catch(error => {
+                console.error("Erro ao carregar plano:", error);
+                renderWelcomeView(); // Mostra a tela de boas-vindas em caso de erro
+            }).finally(() => {
+                hideLoading();
+            });
+        };
+
+        const savePlanToFirestore = async () => {
+            if (!userId || !userPlan) return;
+            showLoading('Salvando seu plano...');
+            await setDoc(doc(db, "userPlans", userId), userPlan);
+            hideLoading();
+        };
+        
+        // --- Lógica de Criação do Plano ---
+        const setupModalInteractivity = () => {
+            const dias = {Segunda: 'Seg', Terça: 'Ter', Quarta: 'Qua', Quinta: 'Qui', Sexta: 'Sex', Sábado: 'Sáb', Domingo: 'Dom'};
+            document.getElementById('dias-semana-grid').innerHTML = Object.entries(dias).map(([fullName, shortName]) => `<div class="custom-checkbox"><input type="checkbox" id="dia-${shortName}" name="dia" value="${fullName}"><label for="dia-${shortName}" class="block p-2 rounded-lg cursor-pointer font-bold text-center">${shortName}</label></div>`).join('');
+            const turnos = ['Manhã', 'Tarde', 'Noite'];
+            document.getElementById('turnos-estudo-grid').innerHTML = turnos.map(turno => `<div class="custom-checkbox"><input type="checkbox" id="turno-${turno}" name="turno" value="${turno}"><label for="turno-${turno}" class="block p-3 rounded-lg cursor-pointer font-medium text-center">${turno}</label></div>`).join('');
+            document.getElementById('start-date').valueAsDate = new Date();
+            
+            document.querySelectorAll('input[name="examDateOption"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    document.getElementById('exam-date-wrapper').classList.toggle('hidden', e.target.value === 'unknown');
+                    document.getElementById('duration-wrapper').classList.toggle('hidden', e.target.value === 'known');
+                });
+            });
+            const subjectsContainer = document.getElementById('subjectsContainer');
+            subjectsContainer.innerHTML = '';
+            addSubjectInputBlock();
+        };
+
+        const addSubjectInputBlock = () => {
+            const subjectsContainer = document.getElementById('subjectsContainer');
+            const subjectDiv = document.createElement('div');
+            subjectDiv.className = 'subject-block bg-white/80 p-4 rounded-lg shadow-sm border space-y-2';
+            subjectDiv.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <label class="font-semibold text-slate-700">Nome da Matéria:</label>
+                    <button class="remove-subject-btn text-red-500 hover:text-red-700 text-sm font-semibold">Remover</button>
+                </div>
+                <input type="text" class="subject-name-input w-full px-3 py-2 rounded-md border border-gray-300" placeholder="Ex: Direito Constitucional">
+                <label class="font-semibold text-slate-700 block">Tópicos (um por linha):</label>
+                <textarea class="subject-topics-textarea w-full px-3 py-2 rounded-md border border-gray-300" rows="5" placeholder="1. Direitos Fundamentais\n2. Organização do Estado"></textarea>
+            `;
+            subjectsContainer.appendChild(subjectDiv);
+            subjectDiv.querySelector('.remove-subject-btn').addEventListener('click', () => subjectDiv.remove());
+        };
+
+        const handleConfirmPlan = async () => {
+            const contestName = document.getElementById('concurso-nome').value.trim();
+            const startDate = document.getElementById('start-date').value;
+            const examDateOption = document.querySelector('input[name="examDateOption"]:checked').value;
+            const examDate = examDateOption === 'known' ? document.getElementById('exam-date').value : null;
+            const studyDuration = examDateOption === 'unknown' ? document.getElementById('study-duration').value : null;
+
+            const days = Array.from(document.querySelectorAll('input[name="dia"]:checked')).map(el => el.value);
+            const shifts = Array.from(document.querySelectorAll('input[name="turno"]:checked')).map(el => el.value);
+
+            if (!contestName || !startDate || days.length === 0 || shifts.length === 0 || (examDateOption === 'known' && !examDate)) {
+                alert('Por favor, preencha todos os campos de informação geral.');
+                return;
+            }
+
+            const finalSubjects = {};
+            document.querySelectorAll('.subject-block').forEach(block => {
+                const name = block.querySelector('.subject-name-input').value.trim();
+                const topics = block.querySelector('.subject-topics-textarea').value.split('\n').map(t => t.trim()).filter(t => t);
+                if (name && topics.length > 0) finalSubjects[name] = { topics };
+            });
+
+            if (Object.keys(finalSubjects).length === 0) {
+                alert('Adicione pelo menos uma matéria com tópicos para continuar.');
+                return;
+            }
+            
+            const progress = Object.keys(finalSubjects).reduce((acc, subject) => ({ ...acc, [subject]: 0 }), {});
+            
+            userPlan = { 
+                contestName, startDate, examDateOption, examDate, studyDuration,
+                schedule: { days, shifts },
+                subjects: finalSubjects, 
+                progress 
+            };
+            
+            await savePlanToFirestore();
+            hideSetupModal();
+            renderPlanView();
+        };
+        
+        // --- Renderização do Plano ---
+        const renderWelcomeView = () => { mainApp.classList.remove('hidden'); welcomeView.classList.remove('hidden'); planView.classList.add('hidden'); };
+        const renderPlanView = () => {
+            if (!userPlan) return;
+            mainApp.classList.remove('hidden');
+            welcomeView.classList.add('hidden');
+            planView.classList.remove('hidden');
+            document.getElementById('main-title').textContent = userPlan.contestName;
+            document.getElementById('headerDate').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            renderStudySessions();
+            renderGeneralProgress();
+        };
+        const generateWeeklySchedule = () => {
+            const weeklySchedule = {};
+            const { days, shifts } = userPlan.schedule;
+            days.forEach(day => { weeklySchedule[day] = shifts.map(shift => ({ shift, session: null })); });
+            const subjectsToStudy = Object.keys(userPlan.subjects)
+                .map(name => ({ name, progress: userPlan.progress[name] || 0, totalTopics: userPlan.subjects[name].topics.length }))
+                .filter(s => s.progress < s.totalTopics)
+                .sort((a, b) => (a.progress / a.totalTopics) - (b.progress / b.totalTopics) || Math.random() - 0.5);
+            if (subjectsToStudy.length === 0) return weeklySchedule;
+            let subjectIndex = 0;
+            days.forEach(day => {
+                weeklySchedule[day].forEach(slot => {
+                    if (subjectsToStudy.length === 0) return;
+                    if (subjectIndex >= subjectsToStudy.length) subjectIndex = 0;
+                    const subject = subjectsToStudy[subjectIndex];
+                    const topicIndex = subject.progress;
+                    const topicText = userPlan.subjects[subject.name].topics[topicIndex];
+                    if(topicText) {
+                        slot.session = { subject: subject.name, topic: `${topicIndex + 1}. ${topicText}`, topicIndex };
+                        subjectsToStudy[subjectIndex].progress++;
+                        if (subjectsToStudy[subjectIndex].progress >= subjectsToStudy[subjectIndex].totalTopics) {
+                            subjectsToStudy.splice(subjectIndex, 1);
+                        } else { subjectIndex++; }
+                    }
+                });
+            });
+            return weeklySchedule;
+        };
+        const renderStudySessions = () => {
+            const container = document.getElementById('sessoesContainer');
+            const weeklySchedule = generateWeeklySchedule();
+            const colors = ['#3b82f6', '#6366f1', '#ec4899', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#8b5cf6', '#d946ef'];
+            const icons = ['📚', '🧠', '⚖️', '🏛️', '💰', '🤝', '📈', '🧾', '🗺️', '💻', '🔍', '📊', '📜', '🇬🇴'];
+            let colorIndex = 0;
+            const subjectStyles = Object.keys(userPlan.subjects).reduce((acc, subject) => {
+                acc[subject] = { color: colors[colorIndex % colors.length], icon: icons[colorIndex % icons.length] };
+                colorIndex++;
+                return acc;
+            }, {});
+            const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long' });
+            const capitalizedToday = today.charAt(0).toUpperCase() + today.slice(1);
+            container.innerHTML = Object.entries(weeklySchedule).map(([day, slots]) => {
+                const isToday = day === capitalizedToday;
+                const dayHtml = slots.map(slot => {
+                    if (!slot.session) return `<div class="p-4 rounded-lg bg-gray-100 text-sm text-gray-500">${slot.shift}: Descanso</div>`;
+                    const { subject, topic, topicIndex } = slot.session;
+                    const style = subjectStyles[subject];
+                    const isCompleted = userPlan.progress[subject] > topicIndex;
+                    return `<div class="flex items-start space-x-3 p-3 border-l-4 rounded-r-md bg-white shadow-sm" style="border-color: ${style.color};">
+                        <div class="text-xl pt-1">${style.icon}</div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center"><span class="font-bold text-sm" style="color: ${style.color};">${subject}</span><span class="text-xs font-semibold text-gray-600">${slot.shift}</span></div>
+                            <p class="mt-1 text-gray-600 text-sm ${isCompleted ? 'session-completed' : ''}">${topic}</p>
+                            <div class="mt-2 text-right"><button class="complete-btn text-xs font-medium py-1 px-3 rounded-md transition-all ${isCompleted ? 'bg-gray-400 text-white' : 'bg-green-500 text-white hover:bg-green-600'}" data-subject="${subject}" data-topic-index="${topicIndex}">${isCompleted ? '✔️ Refazer' : 'Concluir'}</button></div>
+                        </div>
+                    </div>`;
+                }).join('<div class="h-2"></div>');
+                return `<div class="p-4 rounded-xl ${isToday ? 'current-day-highlight bg-blue-50/50' : 'bg-gray-100/70'}"><h3 class="font-bold text-lg mb-3 text-slate-800">${day}</h3><div class="space-y-2">${dayHtml}</div></div>`;
+            }).join('');
+        };
+        const renderGeneralProgress = () => {
+            const container = document.getElementById('progressoContainer');
+            if(!userPlan || !userPlan.subjects) return;
+            let totalTopics = 0, completedTopics = 0;
+            const colors = ['blue', 'indigo', 'pink', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'purple', 'fuchsia'];
+            const icons = ['📚', '🧠', '⚖️', '🏛️', '💰', '🤝', '📈', '🧾', '🗺️', '💻', '🔍', '📊', '📜', '🇬🇴'];
+            let colorIndex = 0;
+            const disciplinesHTML = Object.entries(userPlan.subjects).map(([name, data]) => {
+                const total = data.topics.length;
+                const completed = userPlan.progress[name] || 0;
+                const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+                totalTopics += total;
+                completedTopics += completed;
+                const style = { color: colors[colorIndex % colors.length], icon: icons[colorIndex % icons.length] };
+                colorIndex++;
+                return `<div class="bg-white/70 backdrop-blur-sm rounded-lg shadow-md overflow-hidden">
+                    <div class="flex justify-between items-center p-3">
+                        <div class="flex items-center space-x-3"><span class="text-lg">${style.icon}</span><span class="font-semibold text-sm text-slate-700 flex-1">${name}</span></div>
+                        <div class="flex items-center space-x-2"><span class="text-xs font-bold text-${style.color}-600">${percentage}%</span></div>
+                    </div>
+                    <div class="progress-bar h-1.5 bg-${style.color}-100 w-full"><div class="progress-bar-inner h-full bg-${style.color}-500" style="width: ${percentage}%;"></div></div>
+                </div>`;
+            }).join('');
+            const totalPercentage = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+            const summaryHTML = `<div class="bg-gradient-to-br from-sky-500 to-blue-600 text-white p-6 rounded-xl shadow-xl text-center"><h3 class="text-lg font-bold">Progresso Total</h3><div class="text-5xl font-extrabold my-2">${totalPercentage}%</div><p class="text-sm opacity-90">${completedTopics} de ${totalTopics} tópicos concluídos.</p></div>`;
+            container.innerHTML = summaryHTML + disciplinesHTML;
+        };
+
+        // --- Event Listeners ---
+        const setFeedback = (msg, isError = true) => {
+            const el = document.getElementById('auth-feedback');
+            el.textContent = msg;
+            el.className = `text-sm mt-4 h-4 ${isError ? 'text-red-500' : 'text-green-500'}`;
+            setTimeout(() => el.textContent = '', 3000);
+        };
+
+        const togglePasswordVisibility = (btn) => {
+            const input = btn.closest('.relative').querySelector('input');
+            const eyeOpen = btn.querySelector('.eye-open');
+            const eyeClosed = btn.querySelector('.eye-closed');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eyeOpen.classList.remove('hidden');
+                eyeClosed.classList.add('hidden');
+            }
+        };
+
+        document.getElementById('createNewPlanBtn').addEventListener('click', () => {
+            setupModalInteractivity();
+            showSetupModal();
+        });
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+        document.getElementById('show-signup').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('signup-form'); });
+        document.getElementById('show-login').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('login-form'); });
+        
+        document.getElementById('login-btn').addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            signInWithEmailAndPassword(auth, email, password)
+                .catch(err => setFeedback('E-mail ou senha inválidos.'));
+        });
+
+        document.getElementById('signup-btn').addEventListener('click', () => {
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            if (password.length < 6) {
+                setFeedback('A senha deve ter pelo menos 6 caracteres.');
+                return;
+            }
+            createUserWithEmailAndPassword(auth, email, password)
+                .catch(err => {
+                    if (err.code === 'auth/email-already-in-use') {
+                        setFeedback('Este e-mail já está em uso.');
+                    } else {
+                        setFeedback('Erro ao criar conta.');
+                    }
+                });
+        });
+        
+        document.querySelectorAll('.toggle-password').forEach(btn => {
+            btn.addEventListener('click', () => togglePasswordVisibility(btn));
+        });
+
+        document.getElementById('addSubjectBtn').addEventListener('click', addSubjectInputBlock);
+        document.getElementById('confirmPlanBtn').addEventListener('click', handleConfirmPlan);
+
+        document.getElementById('sessoesContainer').addEventListener('click', async (e) => {
+            const button = e.target.closest('.complete-btn');
+            if (button) {
+                const { subject, topicIndex } = button.dataset;
+                const topicIndexInt = parseInt(topicIndex, 10);
+                const isCompleted = userPlan.progress[subject] > topicIndexInt;
+                userPlan.progress[subject] = isCompleted ? topicIndexInt : topicIndexInt + 1;
+                await savePlanToFirestore(); // Salva o progresso na nuvem
+                renderStudySessions();
+                renderGeneralProgress();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
