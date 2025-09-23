@@ -86,7 +86,7 @@
     <!-- Modal de Configuração do Plano -->
     <div id="setupModal" class="hidden fixed inset-0 z-40 flex items-start justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
         <div class="modal-content-wrapper bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 w-full max-w-4xl my-8">
-            <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 mb-6 text-center">Configurar Plano de Estudos</h1>
+            <h1 id="setup-title" class="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 mb-6 text-center">Configurar Plano de Estudos</h1>
             <div class="space-y-6">
                 <div>
                     <h3 class="text-lg font-semibold mb-3 text-slate-700 border-b pb-2">1. Informações Gerais</h3>
@@ -106,18 +106,21 @@
                                 <div><input type="radio" id="date-unknown" name="examDateOption" value="unknown"><label for="date-unknown" class="px-3 py-2 rounded-lg cursor-pointer">Indefinida</label></div>
                             </div>
                         </div>
-                        <div id="exam-date-wrapper">
-                            <label for="exam-date" class="block text-sm font-medium text-gray-700 mb-1 invisible">Data da Prova</label>
-                            <input type="date" id="exam-date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
-                        </div>
-                        <div id="duration-wrapper" class="hidden">
-                             <label for="study-duration" class="block text-sm font-medium text-gray-700 mb-1 invisible">Duração</label>
-                             <select id="study-duration" class="w-full px-4 py-2 rounded-lg border border-gray-300">
-                                <option value="3">3 Meses</option>
-                                <option value="6">6 Meses</option>
-                                <option value="12">1 Ano</option>
-                                <option value="24">2 Anos</option>
-                            </select>
+                        <div>
+                            <div id="exam-date-wrapper" class="mt-2">
+                                <label for="exam-date" class="block text-sm font-medium text-gray-700 mb-1">Data da Prova</label>
+                                <input type="date" id="exam-date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                            </div>
+                            <div id="duration-wrapper" class="hidden mt-2">
+                                <label for="study-duration" class="block text-sm font-medium text-gray-700 mb-1">Prazo para Conclusão</label>
+                                <select id="study-duration" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                    <option value="indeterminate">Indeterminado</option>
+                                    <option value="3">3 Meses</option>
+                                    <option value="6">6 Meses</option>
+                                    <option value="12">1 Ano</option>
+                                    <option value="24">2 Anos</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                      <div class="mt-4">
@@ -135,7 +138,7 @@
                     <button id="addSubjectBtn" class="mt-4 w-full border-2 border-dashed border-blue-400 text-blue-600 font-semibold py-2 rounded-lg hover:bg-blue-100 transition-all">+ Adicionar Matéria</button>
                 </div>
             </div>
-            <button id="confirmPlanBtn" class="mt-8 w-full bg-green-600 text-white font-bold py-3 sm:py-4 rounded-lg text-lg transition-all hover:bg-green-700">Salvar Plano e Iniciar Estudos</button>
+            <button id="confirmPlanBtn" class="mt-8 w-full bg-green-600 text-white font-bold py-3 sm:py-4 rounded-lg text-lg transition-all hover:bg-green-700">Salvar Plano</button>
         </div>
     </div>
 
@@ -154,8 +157,9 @@
                     <h1 id="main-title" class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-slate-800 to-sky-700 bg-clip-text text-transparent pb-2">Seu Plano de Estudos</h1>
                     <p id="headerDate" class="text-slate-500 mt-1 text-base sm:text-lg"></p>
                 </div>
-                <div class="flex items-center gap-4">
-                    <p id="user-email" class="text-sm text-slate-600 font-medium hidden"></p>
+                <div class="flex items-center gap-2">
+                    <p id="user-email" class="text-sm text-slate-600 font-medium hidden truncate max-w-[200px]"></p>
+                    <button id="editPlanBtn" class="bg-white border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-gray-100 transition-all">Editar Plano</button>
                     <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-red-600 transition-all">Sair</button>
                 </div>
             </header>
@@ -204,7 +208,7 @@
         // --- Controle de UI ---
         const showLoading = (text) => { loadingOverlay.querySelector('p').textContent = text; loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex'); };
         const hideLoading = () => { loadingOverlay.classList.add('hidden'); loadingOverlay.classList.remove('flex'); };
-        const showAuthModal = () => { authModal.classList.remove('hidden'); authModal.classList.add('flex'); setTimeout(() => authModal.querySelector('.modal-content-wrapper').classList.add('active'), 50); };
+        const showAuthModal = () => { mainApp.classList.add('hidden'); authModal.classList.remove('hidden'); authModal.classList.add('flex'); setTimeout(() => authModal.querySelector('.modal-content-wrapper').classList.add('active'), 50); };
         const hideAuthModal = () => { authModal.querySelector('.modal-content-wrapper').classList.remove('active'); setTimeout(() => { authModal.classList.add('hidden'); authModal.classList.remove('flex'); }, 200); };
         const showSetupModal = () => { setupModal.classList.remove('hidden'); setupModal.classList.add('flex'); setTimeout(() => setupModal.querySelector('.modal-content-wrapper').classList.add('active'), 50); };
         const hideSetupModal = () => { setupModal.querySelector('.modal-content-wrapper').classList.remove('active'); setTimeout(() => { setupModal.classList.add('hidden'); setupModal.classList.remove('flex'); }, 200); };
@@ -212,68 +216,112 @@
         
         // --- Lógica de Autenticação e Dados ---
         onAuthStateChanged(auth, (user) => {
-            hideLoading();
             if (user) {
+                if (userId === user.uid) return; // Evita recarregamentos desnecessários
                 userId = user.uid;
                 hideAuthModal();
                 mainApp.classList.remove('hidden');
                 document.getElementById('user-email').textContent = user.email;
                 document.getElementById('user-email').classList.remove('hidden');
-                loadPlanFromFirestore(user);
+                loadPlanFromFirestore();
             } else {
                 userId = null;
                 userPlan = null;
-                mainApp.classList.add('hidden');
+                hideLoading();
                 showAuthModal();
             }
         });
         
-        const loadPlanFromFirestore = (user) => {
-            if (!user) return;
+        const loadPlanFromFirestore = async () => {
+            if (!userId) return;
             showLoading('Carregando seu plano...');
-            const docRef = doc(db, "userPlans", user.uid);
-            getDoc(docRef).then(docSnap => {
+            try {
+                const docRef = doc(db, "userPlans", userId);
+                const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     userPlan = docSnap.data();
                     renderPlanView();
                 } else {
                     renderWelcomeView();
                 }
-            }).catch(error => {
+            } catch (error) {
                 console.error("Erro ao carregar plano:", error);
-                renderWelcomeView(); // Mostra a tela de boas-vindas em caso de erro
-            }).finally(() => {
+                renderWelcomeView();
+            } finally {
                 hideLoading();
-            });
+            }
         };
 
         const savePlanToFirestore = async () => {
             if (!userId || !userPlan) return;
             showLoading('Salvando seu plano...');
-            await setDoc(doc(db, "userPlans", userId), userPlan);
-            hideLoading();
+            try {
+                await setDoc(doc(db, "userPlans", userId), userPlan);
+            } catch(error) {
+                console.error("Erro ao salvar o plano:", error);
+                alert("Não foi possível salvar seu plano. Tente novamente.");
+            } finally {
+                hideLoading();
+            }
         };
         
-        // --- Lógica de Criação do Plano ---
-        const setupModalInteractivity = () => {
+        // --- Lógica de Criação/Edição do Plano ---
+        const openSetupModal = (isEditing = false) => {
+            document.getElementById('setup-title').textContent = isEditing ? 'Editar Plano de Estudos' : 'Configurar Plano de Estudos';
+            
             const dias = {Segunda: 'Seg', Terça: 'Ter', Quarta: 'Qua', Quinta: 'Qui', Sexta: 'Sex', Sábado: 'Sáb', Domingo: 'Dom'};
             document.getElementById('dias-semana-grid').innerHTML = Object.entries(dias).map(([fullName, shortName]) => `<div class="custom-checkbox"><input type="checkbox" id="dia-${shortName}" name="dia" value="${fullName}"><label for="dia-${shortName}" class="block p-2 rounded-lg cursor-pointer font-bold text-center">${shortName}</label></div>`).join('');
             const turnos = ['Manhã', 'Tarde', 'Noite'];
             document.getElementById('turnos-estudo-grid').innerHTML = turnos.map(turno => `<div class="custom-checkbox"><input type="checkbox" id="turno-${turno}" name="turno" value="${turno}"><label for="turno-${turno}" class="block p-3 rounded-lg cursor-pointer font-medium text-center">${turno}</label></div>`).join('');
-            document.getElementById('start-date').valueAsDate = new Date();
             
+            const subjectsContainer = document.getElementById('subjectsContainer');
+            subjectsContainer.innerHTML = '';
+
+            if (isEditing && userPlan) {
+                document.getElementById('concurso-nome').value = userPlan.contestName;
+                document.getElementById('start-date').value = userPlan.startDate;
+                
+                const dateOption = userPlan.examDateOption || 'known';
+                document.getElementById(dateOption === 'known' ? 'date-known' : 'date-unknown').checked = true;
+                
+                document.getElementById('exam-date-wrapper').classList.toggle('hidden', dateOption === 'unknown');
+                document.getElementById('duration-wrapper').classList.toggle('hidden', dateOption === 'known');
+                
+                if (userPlan.examDate) document.getElementById('exam-date').value = userPlan.examDate;
+                if (userPlan.studyDuration) document.getElementById('study-duration').value = userPlan.studyDuration;
+
+                userPlan.schedule.days.forEach(dayName => {
+                    const diaCheckbox = document.querySelector(`input[name="dia"][value="${dayName}"]`);
+                    if(diaCheckbox) diaCheckbox.checked = true;
+                });
+                 userPlan.schedule.shifts.forEach(shiftName => {
+                    const turnoCheckbox = document.querySelector(`input[name="turno"][value="${shiftName}"]`);
+                    if(turnoCheckbox) turnoCheckbox.checked = true;
+                });
+
+                Object.entries(userPlan.subjects).forEach(([name, data]) => {
+                    addSubjectInputBlock(name, data.topics.join('\n'));
+                });
+            } else {
+                document.getElementById('concurso-nome').value = '';
+                document.getElementById('start-date').valueAsDate = new Date();
+                document.getElementById('date-known').checked = true;
+                 document.getElementById('exam-date-wrapper').classList.remove('hidden');
+                document.getElementById('duration-wrapper').classList.add('hidden');
+                addSubjectInputBlock();
+            }
+
             document.querySelectorAll('input[name="examDateOption"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     document.getElementById('exam-date-wrapper').classList.toggle('hidden', e.target.value === 'unknown');
                     document.getElementById('duration-wrapper').classList.toggle('hidden', e.target.value === 'known');
                 });
             });
-            const subjectsContainer = document.getElementById('subjectsContainer');
-            subjectsContainer.innerHTML = '';
-            addSubjectInputBlock();
+
+            showSetupModal();
         };
 
-        const addSubjectInputBlock = () => {
+        const addSubjectInputBlock = (name = '', topics = '') => {
             const subjectsContainer = document.getElementById('subjectsContainer');
             const subjectDiv = document.createElement('div');
             subjectDiv.className = 'subject-block bg-white/80 p-4 rounded-lg shadow-sm border space-y-2';
@@ -282,9 +330,9 @@
                     <label class="font-semibold text-slate-700">Nome da Matéria:</label>
                     <button class="remove-subject-btn text-red-500 hover:text-red-700 text-sm font-semibold">Remover</button>
                 </div>
-                <input type="text" class="subject-name-input w-full px-3 py-2 rounded-md border border-gray-300" placeholder="Ex: Direito Constitucional">
+                <input type="text" value="${name}" class="subject-name-input w-full px-3 py-2 rounded-md border border-gray-300" placeholder="Ex: Direito Constitucional">
                 <label class="font-semibold text-slate-700 block">Tópicos (um por linha):</label>
-                <textarea class="subject-topics-textarea w-full px-3 py-2 rounded-md border border-gray-300" rows="5" placeholder="1. Direitos Fundamentais\n2. Organização do Estado"></textarea>
+                <textarea class="subject-topics-textarea w-full px-3 py-2 rounded-md border border-gray-300" rows="5" placeholder="1. Direitos Fundamentais\n2. Organização do Estado">${topics}</textarea>
             `;
             subjectsContainer.appendChild(subjectDiv);
             subjectDiv.querySelector('.remove-subject-btn').addEventListener('click', () => subjectDiv.remove());
@@ -317,7 +365,10 @@
                 return;
             }
             
-            const progress = Object.keys(finalSubjects).reduce((acc, subject) => ({ ...acc, [subject]: 0 }), {});
+            const progress = userPlan?.progress || {};
+            Object.keys(finalSubjects).forEach(name => {
+                if (!progress[name]) progress[name] = 0;
+            });
             
             userPlan = { 
                 contestName, startDate, examDateOption, examDate, studyDuration,
@@ -373,6 +424,7 @@
         };
         const renderStudySessions = () => {
             const container = document.getElementById('sessoesContainer');
+            if(!userPlan.subjects) return;
             const weeklySchedule = generateWeeklySchedule();
             const colors = ['#3b82f6', '#6366f1', '#ec4899', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#8b5cf6', '#d946ef'];
             const icons = ['📚', '🧠', '⚖️', '🏛️', '💰', '🤝', '📈', '🧾', '🗺️', '💻', '🔍', '📊', '📜', '🇬🇴'];
@@ -454,10 +506,9 @@
             }
         };
 
-        document.getElementById('createNewPlanBtn').addEventListener('click', () => {
-            setupModalInteractivity();
-            showSetupModal();
-        });
+        document.getElementById('createNewPlanBtn').addEventListener('click', () => openSetupModal(false));
+        document.getElementById('editPlanBtn').addEventListener('click', () => openSetupModal(true));
+        
         document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
         document.getElementById('show-signup').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('signup-form'); });
         document.getElementById('show-login').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('login-form'); });
@@ -490,7 +541,7 @@
             btn.addEventListener('click', () => togglePasswordVisibility(btn));
         });
 
-        document.getElementById('addSubjectBtn').addEventListener('click', addSubjectInputBlock);
+        document.getElementById('addSubjectBtn').addEventListener('click', () => addSubjectInputBlock());
         document.getElementById('confirmPlanBtn').addEventListener('click', handleConfirmPlan);
 
         document.getElementById('sessoesContainer').addEventListener('click', async (e) => {
@@ -500,6 +551,7 @@
                 const topicIndexInt = parseInt(topicIndex, 10);
                 const isCompleted = userPlan.progress[subject] > topicIndexInt;
                 userPlan.progress[subject] = isCompleted ? topicIndexInt : topicIndexInt + 1;
+                button.disabled = true; // Desabilita o botão para evitar cliques duplos
                 await savePlanToFirestore(); // Salva o progresso na nuvem
                 renderStudySessions();
                 renderGeneralProgress();
