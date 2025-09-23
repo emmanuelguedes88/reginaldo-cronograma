@@ -3,54 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plano de Estudos Corrigido</title>
+    <title>Plano de Estudos Futurista</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .modal-backdrop { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); }
-        .current-day-highlight { box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); border: 2px solid #3b82f6; }
+        body { 
+            font-family: 'Inter', sans-serif;
+            scrollbar-width: thin;
+            scrollbar-color: #0e7490 #1e293b;
+        }
+        .modal-backdrop { background-color: rgba(10, 10, 20, 0.7); backdrop-filter: blur(12px); }
+        .current-day-highlight { box-shadow: 0 0 25px rgba(10, 186, 251, 0.5), 0 0 10px rgba(10, 186, 251, 0.3) inset; border: 2px solid #0891b2; }
         .progress-bar-inner { transition: width 0.5s ease-in-out; }
-        .custom-checkbox input[type="checkbox"] { display: none; }
-        .custom-checkbox label { border: 2px solid #d1d5db; background-color: #f9fafb; color: #6b7280; transition: all 0.2s ease; }
-        .custom-checkbox input[type="checkbox"]:checked + label { background-color: #3b82f6; border-color: #2563eb; color: white; transform: scale(1.05); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
-        .custom-radio input[type="radio"] { display: none; }
-        .custom-radio label { border: 2px solid #d1d5db; background-color: #f9fafb; color: #6b7280; transition: all 0.2s ease; }
-        .custom-radio input[type="radio"]:checked + label { background-color: #3b82f6; border-color: #2563eb; color: white; }
-        .session-completed { opacity: 0.6; text-decoration: line-through; }
+        
+        /* Custom Checkbox & Radio for Dark Theme */
+        .custom-checkbox input[type="checkbox"], .custom-radio input[type="radio"] { display: none; }
+        .custom-checkbox label, .custom-radio label {
+            border: 2px solid #334155; background-color: #1e293b; color: #94a3b8;
+            transition: all 0.2s ease;
+        }
+        .custom-checkbox input[type="checkbox"]:checked + label, .custom-radio input[type="radio"]:checked + label {
+            background-color: #0e7490; border-color: #06b6d4; color: white;
+            transform: scale(1.05); box-shadow: 0 0 15px rgba(10, 186, 251, 0.4);
+        }
+        
+        .session-completed { opacity: 0.5; text-decoration: line-through; }
         .modal-content-wrapper { transform: scale(0.95); opacity: 0; transition: transform 0.2s ease-out, opacity 0.2s ease-out; }
         .modal-content-wrapper.active { transform: scale(1); opacity: 1; }
         .loader {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3498db;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            border: 5px solid #334155; border-top: 5px solid #06b6d4;
+            border-radius: 50%; width: 50px; height: 50px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
         .auth-form { display: none; }
         .auth-form.active { display: block; }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease-out; padding: 0 1rem; }
         .accordion-content.open { max-height: 30rem; overflow-y: auto; padding: 0.5rem 1rem 1rem 1rem; }
         .accordion-header .arrow-icon { transition: transform 0.3s ease-out; }
         .accordion-header.open .arrow-icon { transform: rotate(180deg); }
+        
         #feedback-toast {
             transition: opacity 0.3s, transform 0.3s;
-            transform: translateY(100%);
-            opacity: 0;
-            visibility: hidden;
+            transform: translateY(100%); opacity: 0; visibility: hidden;
         }
         #feedback-toast.show {
-            transform: translateY(0);
-            opacity: 1;
-            visibility: visible;
+            transform: translateY(0); opacity: 1; visibility: visible;
+        }
+
+        /* Futuristic Input Styles */
+        .futuristic-input {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+            transition: all 0.2s ease;
+        }
+        .futuristic-input:focus {
+            outline: none;
+            border-color: #0891b2;
+            box-shadow: 0 0 10px rgba(10, 186, 251, 0.4);
+            background-color: #334155;
         }
     </style>
 </head>
-<body class="antialiased text-gray-800 bg-gradient-to-br from-gray-50 to-blue-100 min-h-screen">
+<body class="antialiased text-slate-200 bg-gradient-to-br from-slate-900 via-sky-900 to-slate-900 min-h-screen">
 
     <div id="loadingOverlay" class="hidden fixed inset-0 z-[60] flex-col items-center justify-center modal-backdrop">
         <div class="loader"></div>
@@ -58,46 +77,44 @@
     </div>
 
     <!-- Feedback Toast -->
-    <div id="feedback-toast" class="fixed bottom-5 right-5 bg-green-600 text-white font-bold py-3 px-5 rounded-lg shadow-xl z-50">
-        Plano salvo com sucesso!
-    </div>
+    <div id="feedback-toast" class="fixed bottom-5 right-5 bg-green-600 text-white font-bold py-3 px-5 rounded-lg shadow-xl z-50"></div>
 
     <!-- Modal de Autenticação -->
     <div id="authModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center modal-content-wrapper" id="authContent">
+        <div class="bg-slate-800/60 backdrop-blur-lg border border-slate-700 rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center modal-content-wrapper" id="authContent">
             <!-- Login Form -->
             <div id="login-form" class="auth-form active">
-                <h2 class="text-2xl font-bold text-slate-800 mb-2">Bem-vindo de volta!</h2>
-                <p class="text-slate-500 mb-6">Faça login para acessar seu plano.</p>
+                <h2 class="text-3xl font-bold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent mb-2">Bem-vindo!</h2>
+                <p class="text-slate-400 mb-6">Acesse seu plano de batalha.</p>
                 <div class="space-y-4 text-left">
-                    <input type="email" id="login-email" placeholder="Seu e-mail" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="email" id="login-email" placeholder="Seu e-mail" class="w-full px-4 py-2 rounded-lg futuristic-input">
                     <div class="relative">
-                        <input type="password" id="login-password" placeholder="Sua senha" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button type="button" class="toggle-password absolute inset-y-0 right-0 px-3 flex items-center text-gray-500">
-                            <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 S.A. 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                            <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-3.11 3.563-5.518 6.814-6.166M9 9a3 3 0 116 0 3 3 0 01-6 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 2l20 20" /></svg>
+                        <input type="password" id="login-password" placeholder="Sua senha" class="w-full px-4 py-2 rounded-lg futuristic-input">
+                        <button type="button" class="toggle-password absolute inset-y-0 right-0 px-3 flex items-center text-slate-400">
+                           <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                           <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-3.11 3.563-5.518 6.814-6.166M9 9a3 3 0 116 0 3 3 0 01-6 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 2l20 20" /></svg>
                         </button>
                     </div>
                 </div>
-                <button id="login-btn" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all">Entrar</button>
-                <p class="text-sm text-slate-500 mt-4">Não tem uma conta? <a href="#" id="show-signup" class="font-semibold text-blue-600 hover:underline">Cadastre-se</a></p>
+                <button id="login-btn" class="mt-6 w-full bg-sky-600 text-white font-bold py-3 rounded-lg hover:bg-sky-500 transition-all">Entrar</button>
+                <p class="text-sm text-slate-400 mt-4">Não tem uma conta? <a href="#" id="show-signup" class="font-semibold text-cyan-400 hover:underline">Cadastre-se</a></p>
             </div>
             <!-- Signup Form -->
             <div id="signup-form" class="auth-form">
-                <h2 class="text-2xl font-bold text-slate-800 mb-2">Crie sua Conta</h2>
-                <p class="text-slate-500 mb-6">É rápido e fácil para salvar seu progresso.</p>
+                <h2 class="text-3xl font-bold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent mb-2">Crie sua Conta</h2>
+                <p class="text-slate-400 mb-6">Comece sua jornada para a aprovação.</p>
                 <div class="space-y-4 text-left">
-                    <input type="email" id="signup-email" placeholder="Seu e-mail" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <input type="email" id="signup-email" placeholder="Seu e-mail" class="w-full px-4 py-2 rounded-lg futuristic-input">
                     <div class="relative">
-                        <input type="password" id="signup-password" placeholder="Crie uma senha (mín. 6 caracteres)" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        <button type="button" class="toggle-password absolute inset-y-0 right-0 px-3 flex items-center text-gray-500">
-                            <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                            <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-3.11 3.563-5.518 6.814-6.166M9 9a3 3 0 116 0 3 3 0 01-6 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 2l20 20" /></svg>
+                        <input type="password" id="signup-password" placeholder="Crie uma senha (mín. 6 caracteres)" class="w-full px-4 py-2 rounded-lg futuristic-input">
+                         <button type="button" class="toggle-password absolute inset-y-0 right-0 px-3 flex items-center text-slate-400">
+                           <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                           <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-3.11 3.563-5.518 6.814-6.166M9 9a3 3 0 116 0 3 3 0 01-6 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 2l20 20" /></svg>
                         </button>
                     </div>
                 </div>
-                <button id="signup-btn" class="mt-6 w-full bg-orange-600 text-white font-bold py-3 rounded-lg hover:bg-orange-700 transition-all">Cadastrar</button>
-                <p class="text-sm text-slate-500 mt-4">Já tem uma conta? <a href="#" id="show-login" class="font-semibold text-orange-600 hover:underline">Faça login</a></p>
+                <button id="signup-btn" class="mt-6 w-full bg-cyan-600 text-white font-bold py-3 rounded-lg hover:bg-cyan-500 transition-all">Cadastrar</button>
+                <p class="text-sm text-slate-400 mt-4">Já tem uma conta? <a href="#" id="show-login" class="font-semibold text-sky-400 hover:underline">Faça login</a></p>
             </div>
              <p id="auth-feedback" class="text-sm mt-4 h-4"></p>
         </div>
@@ -105,23 +122,23 @@
     
     <!-- Modal de Configuração do Plano -->
     <div id="setupModal" class="hidden fixed inset-0 z-40 flex items-start justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
-        <div class="modal-content-wrapper bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 w-full max-w-4xl my-8">
-            <h1 id="setup-title" class="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 mb-6 text-center">Configurar Plano de Estudos</h1>
-            <div class="space-y-6">
+        <div class="modal-content-wrapper bg-slate-900/70 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 w-full max-w-4xl my-8">
+            <h1 id="setup-title" class="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent mb-6 text-center">Configurar Plano de Estudos</h1>
+            <div class="space-y-8">
                 <div>
-                    <h3 class="text-lg font-semibold mb-3 text-slate-700 border-b pb-2">1. Informações Gerais</h3>
+                    <h3 class="text-xl font-semibold mb-4 text-slate-300 border-b border-slate-700 pb-2">1. Missão</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mt-4">
                         <div>
-                            <label for="concurso-nome" class="block text-sm font-medium text-gray-700 mb-1">Nome do Concurso</label>
-                            <input type="text" id="concurso-nome" placeholder="Ex: Auditor-Fiscal da Receita" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                            <label for="concurso-nome" class="block text-sm font-medium text-slate-400 mb-1">Nome do Concurso</label>
+                            <input type="text" id="concurso-nome" placeholder="Ex: Auditor-Fiscal da Receita" class="w-full px-4 py-2 rounded-lg futuristic-input">
                         </div>
                         <div>
-                            <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">Data de Início dos Estudos</label>
-                            <input type="date" id="start-date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                            <label for="start-date" class="block text-sm font-medium text-slate-400 mb-1">Data de Início</label>
+                            <input type="date" id="start-date" class="w-full px-4 py-2 rounded-lg futuristic-input">
                         </div>
                          <div class="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 items-end">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Data da Prova</label>
+                                <label class="block text-sm font-medium text-slate-400 mb-2">Data da Prova</label>
                                 <div class="flex items-center gap-4 custom-radio">
                                     <div><input type="radio" id="date-known" name="examDateOption" value="known" checked><label for="date-known" class="px-3 py-2 rounded-lg cursor-pointer">Definida</label></div>
                                     <div><input type="radio" id="date-unknown" name="examDateOption" value="unknown"><label for="date-unknown" class="px-3 py-2 rounded-lg cursor-pointer">Indefinida</label></div>
@@ -129,12 +146,12 @@
                             </div>
                             <div>
                                 <div id="exam-date-wrapper">
-                                    <label for="exam-date" class="block text-sm font-medium text-gray-700 mb-1">Qual a data?</label>
-                                    <input type="date" id="exam-date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                    <label for="exam-date" class="block text-sm font-medium text-slate-400 mb-1">Qual a data?</label>
+                                    <input type="date" id="exam-date" class="w-full px-4 py-2 rounded-lg futuristic-input">
                                 </div>
                                 <div id="duration-wrapper" class="hidden">
-                                    <label for="study-duration" class="block text-sm font-medium text-gray-700 mb-1">Prazo para Conclusão</label>
-                                    <select id="study-duration" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                    <label for="study-duration" class="block text-sm font-medium text-slate-400 mb-1">Prazo para Conclusão</label>
+                                    <select id="study-duration" class="w-full px-4 py-2 rounded-lg futuristic-input">
                                         <option value="indeterminate">Indeterminado</option>
                                         <option value="3">3 Meses</option>
                                         <option value="6">6 Meses</option>
@@ -145,22 +162,22 @@
                             </div>
                          </div>
                     </div>
-                     <div class="mt-4">
-                        <h4 class="text-base font-medium mb-2 text-slate-600">Disponibilidade Semanal</h4>
+                     <div class="mt-6">
+                        <h4 class="text-base font-medium mb-2 text-slate-400">Disponibilidade Semanal</h4>
                         <div id="dias-semana-grid" class="grid grid-cols-4 md:grid-cols-7 gap-2 custom-checkbox"></div>
                     </div>
-                     <div class="mt-4">
-                        <h4 class="text-base font-medium mb-2 text-slate-600">Turnos de Estudo</h4>
+                     <div class="mt-6">
+                        <h4 class="text-base font-medium mb-2 text-slate-400">Turnos de Estudo</h4>
                         <div id="turnos-estudo-grid" class="grid grid-cols-3 gap-2 custom-checkbox"></div>
                     </div>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold mb-3 text-slate-700 border-b pb-2">2. Matérias e Conteúdo Programático</h3>
+                    <h3 class="text-xl font-semibold mb-4 text-slate-300 border-b border-slate-700 pb-2">2. Arsenal de Conhecimento</h3>
                     <div id="subjectsContainer" class="space-y-4 mt-4 max-h-[40vh] overflow-y-auto pr-2"></div>
-                    <button id="addSubjectBtn" class="mt-4 w-full border-2 border-dashed border-blue-400 text-blue-600 font-semibold py-2 rounded-lg hover:bg-blue-100 transition-all">+ Adicionar Matéria</button>
+                    <button id="addSubjectBtn" class="mt-4 w-full border-2 border-dashed border-cyan-700 text-cyan-400 font-semibold py-2 rounded-lg hover:bg-cyan-900/50 transition-all">+ Adicionar Disciplina</button>
                 </div>
             </div>
-            <button id="confirmPlanBtn" class="mt-8 w-full bg-green-600 text-white font-bold py-3 sm:py-4 rounded-lg text-lg transition-all hover:bg-green-700">Salvar Plano</button>
+            <button id="confirmPlanBtn" class="mt-8 w-full bg-cyan-600 text-white font-bold py-3 sm:py-4 rounded-lg text-lg transition-all hover:bg-cyan-500 hover:shadow-[0_0_20px_rgba(10,186,251,0.5)]">Salvar e Iniciar Missão</button>
         </div>
     </div>
 
@@ -168,32 +185,32 @@
     <div id="mainApp" class="hidden container mx-auto p-4 md:p-8">
         <div id="welcomeView">
             <div class="text-center py-16">
-                 <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-slate-800 to-sky-700 bg-clip-text text-transparent pb-2">Nenhum plano de estudos encontrado.</h1>
-                 <p class="text-slate-500 mt-4 text-lg max-w-2xl mx-auto">Pronto para organizar seus estudos e conquistar a aprovação? Comece criando seu plano.</p>
-                 <button id="createNewPlanBtn" class="mt-8 bg-blue-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-transform hover:scale-105">Criar Plano de Estudos</button>
+                 <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent pb-2">Nenhum plano de batalha detectado.</h1>
+                 <p class="text-slate-400 mt-4 text-lg max-w-2xl mx-auto">Pronto para organizar sua estratégia e conquistar a aprovação? Comece definindo seu plano.</p>
+                 <button id="createNewPlanBtn" class="mt-8 bg-sky-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-transform hover:scale-105 hover:shadow-[0_0_20px_rgba(56,189,248,0.5)]">Criar Plano de Estudos</button>
             </div>
         </div>
         <div id="planView" class="hidden">
-            <header class="flex flex-col md:flex-row justify-between items-center mb-8 pb-6 border-b border-gray-200/80 gap-4">
+            <header class="flex flex-col md:flex-row justify-between items-center mb-8 pb-6 border-b border-slate-700/80 gap-4">
                 <div class="text-center md:text-left flex-shrink-0">
-                    <h1 id="main-title" class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-slate-800 to-sky-700 bg-clip-text text-transparent pb-2">Seu Plano de Estudos</h1>
-                    <p id="headerDate" class="text-slate-500 mt-1 text-base sm:text-lg"></p>
+                    <h1 id="main-title" class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent pb-2">Seu Plano de Estudos</h1>
+                    <p id="headerDate" class="text-slate-400 mt-1 text-base sm:text-lg"></p>
                 </div>
                 <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mt-4 md:mt-0">
-                    <p id="user-email" class="text-sm text-slate-600 font-medium hidden truncate max-w-[200px]"></p>
+                    <p id="user-email" class="text-sm text-slate-400 font-medium hidden truncate max-w-[200px]"></p>
                     <div class="flex items-center gap-2 flex-shrink-0">
-                        <button id="editPlanBtn" class="bg-white border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-gray-100 transition-all">Editar Plano</button>
-                        <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-red-600 transition-all">Sair</button>
+                        <button id="editPlanBtn" class="bg-slate-700 border border-slate-600 text-slate-300 font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-slate-600 transition-all">Editar Plano</button>
+                        <button id="logout-btn" class="bg-red-600/90 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-red-500 transition-all">Sair</button>
                     </div>
                 </div>
             </header>
             <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <section class="lg:col-span-2">
-                    <h2 class="text-2xl font-bold mb-4 text-slate-700">Plano de Estudos da Semana</h2>
+                    <h2 class="text-2xl font-bold mb-4 text-slate-300">Sessões da Semana</h2>
                     <div id="sessoesContainer" class="space-y-6"></div>
                 </section>
                 <section>
-                    <h2 class="text-2xl font-bold mb-4 text-slate-700">Progresso Geral</h2>
+                    <h2 class="text-2xl font-bold mb-4 text-slate-300">Progresso Geral</h2>
                     <div id="progressoContainer" class="space-y-4"></div>
                 </section>
             </main>
@@ -205,7 +222,6 @@
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCjoAgqr7qbO305HuehDcqbc9WMcCRHupE",
             authDomain: "cronograma-de-estudos-60ec8.firebaseapp.com",
@@ -216,7 +232,6 @@
             measurementId: "G-PJLJFRD24Y"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -232,7 +247,7 @@
         const mainApp = document.getElementById('mainApp');
         const feedbackToast = document.getElementById('feedback-toast');
         
-        // --- Controle de UI ---
+        // --- UI Control ---
         const showLoading = (text = 'Aguarde...') => { loadingOverlay.querySelector('p').textContent = text; loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex'); };
         const hideLoading = () => { loadingOverlay.classList.add('hidden'); loadingOverlay.classList.remove('flex'); };
         const showAuthModal = () => { mainApp.classList.add('hidden'); authModal.classList.remove('hidden'); authModal.classList.add('flex'); setTimeout(() => authModal.querySelector('.modal-content-wrapper').classList.add('active'), 50); };
@@ -245,12 +260,10 @@
             feedbackToast.textContent = message;
             feedbackToast.className = `fixed bottom-5 right-5 text-white font-bold py-3 px-5 rounded-lg shadow-xl z-50 ${isError ? 'bg-red-600' : 'bg-green-600'}`;
             feedbackToast.classList.add('show');
-            setTimeout(() => {
-                feedbackToast.classList.remove('show');
-            }, 3000);
+            setTimeout(() => { feedbackToast.classList.remove('show'); }, 3000);
         };
 
-        // --- Lógica de Autenticação e Dados ---
+        // --- Auth & Data Logic ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 if (userId === user.uid) return;
@@ -261,13 +274,9 @@
                 document.getElementById('user-email').classList.remove('hidden');
                 loadPlanFromFirestore();
             } else {
-                userId = null;
-                userPlan = null;
-                planView.classList.add('hidden');
-                welcomeView.classList.add('hidden');
-                mainApp.classList.add('hidden');
-                hideLoading();
-                showAuthModal();
+                userId = null; userPlan = null;
+                planView.classList.add('hidden'); welcomeView.classList.add('hidden');
+                mainApp.classList.add('hidden'); hideLoading(); showAuthModal();
             }
         });
         
@@ -280,15 +289,9 @@
                 if (docSnap.exists()) {
                     userPlan = docSnap.data();
                     renderPlanView();
-                } else {
-                    renderWelcomeView();
-                }
-            } catch (error) {
-                console.error("Erro ao carregar plano:", error);
-                renderWelcomeView();
-            } finally {
-                hideLoading();
-            }
+                } else { renderWelcomeView(); }
+            } catch (error) { console.error("Erro ao carregar plano:", error); renderWelcomeView(); } 
+            finally { hideLoading(); }
         };
 
         const savePlanToFirestore = async (showSuccessMessage = false) => {
@@ -296,25 +299,19 @@
             showLoading('Salvando...');
             try {
                 await setDoc(doc(db, "userPlans", userId), userPlan);
-                if (showSuccessMessage) {
-                    showToast("Plano salvo com sucesso!");
-                }
-            } catch(error) {
-                console.error("Erro ao salvar o plano:", error);
-                showToast("Não foi possível salvar seu plano.", true);
-            } finally {
-                hideLoading();
-            }
+                if (showSuccessMessage) showToast("Plano salvo com sucesso!");
+            } catch(error) { console.error("Erro ao salvar o plano:", error); showToast("Não foi possível salvar seu plano.", true); } 
+            finally { hideLoading(); }
         };
         
+        // --- Setup Modal Logic ---
         const openSetupModal = (isEditing = false) => {
             document.getElementById('setup-title').textContent = isEditing ? 'Editar Plano de Estudos' : 'Configurar Plano de Estudos';
             const dias = {Segunda: 'Seg', Terça: 'Ter', Quarta: 'Qua', Quinta: 'Qui', Sexta: 'Sex', Sábado: 'Sáb', Domingo: 'Dom'};
             document.getElementById('dias-semana-grid').innerHTML = Object.entries(dias).map(([fullName, shortName]) => `<div class="custom-checkbox"><input type="checkbox" id="dia-${shortName}" name="dia" value="${fullName}"><label for="dia-${shortName}" class="block p-2 rounded-lg cursor-pointer font-bold text-center">${shortName}</label></div>`).join('');
             const turnos = ['Manhã', 'Tarde', 'Noite'];
             document.getElementById('turnos-estudo-grid').innerHTML = turnos.map(turno => `<div class="custom-checkbox"><input type="checkbox" id="turno-${turno}" name="turno" value="${turno}"><label for="turno-${turno}" class="block p-3 rounded-lg cursor-pointer font-medium text-center">${turno}</label></div>`).join('');
-            const subjectsContainer = document.getElementById('subjectsContainer');
-            subjectsContainer.innerHTML = '';
+            document.getElementById('subjectsContainer').innerHTML = '';
 
             if (isEditing && userPlan) {
                 document.getElementById('concurso-nome').value = userPlan.contestName;
@@ -325,8 +322,8 @@
                 document.getElementById('duration-wrapper').classList.toggle('hidden', dateOption === 'known');
                 if (userPlan.examDate) document.getElementById('exam-date').value = userPlan.examDate;
                 if (userPlan.studyDuration) document.getElementById('study-duration').value = userPlan.studyDuration;
-                userPlan.schedule.days.forEach(dayName => { const diaCheckbox = document.querySelector(`input[name="dia"][value="${dayName}"]`); if(diaCheckbox) diaCheckbox.checked = true; });
-                userPlan.schedule.shifts.forEach(shiftName => { const turnoCheckbox = document.querySelector(`input[name="turno"][value="${shiftName}"]`); if(turnoCheckbox) turnoCheckbox.checked = true; });
+                userPlan.schedule.days.forEach(dayName => { const el = document.querySelector(`input[name="dia"][value="${dayName}"]`); if(el) el.checked = true; });
+                userPlan.schedule.shifts.forEach(shiftName => { const el = document.querySelector(`input[name="turno"][value="${shiftName}"]`); if(el) el.checked = true; });
                 Object.entries(userPlan.subjects).forEach(([name, data]) => addSubjectInputBlock(name, data.topics.join('\n')));
             } else {
                 document.getElementById('concurso-nome').value = '';
@@ -342,15 +339,15 @@
         const addSubjectInputBlock = (name = '', topics = '') => {
             const subjectsContainer = document.getElementById('subjectsContainer');
             const subjectDiv = document.createElement('div');
-            subjectDiv.className = 'subject-block bg-white/80 p-4 rounded-lg shadow-sm border space-y-2';
+            subjectDiv.className = 'subject-block bg-slate-800/50 p-4 rounded-lg border border-slate-700 space-y-3';
             subjectDiv.innerHTML = `
                 <div class="flex justify-between items-center">
-                    <label class="font-semibold text-slate-700">Nome da Matéria:</label>
-                    <button class="remove-subject-btn text-red-500 hover:text-red-700 text-sm font-semibold">Remover</button>
+                    <label class="font-semibold text-slate-300">Nome da Disciplina:</label>
+                    <button class="remove-subject-btn text-red-500 hover:text-red-400 text-sm font-semibold">Remover</button>
                 </div>
-                <input type="text" value="${name}" class="subject-name-input w-full px-3 py-2 rounded-md border border-gray-300" placeholder="Ex: Direito Constitucional">
-                <label class="font-semibold text-slate-700 block">Tópicos (um por linha):</label>
-                <textarea class="subject-topics-textarea w-full px-3 py-2 rounded-md border border-gray-300" rows="5" placeholder="1. Direitos Fundamentais\n2. Organização do Estado">${topics}</textarea>`;
+                <input type="text" value="${name}" class="subject-name-input w-full px-3 py-2 rounded-md futuristic-input" placeholder="Ex: Direito Constitucional">
+                <label class="font-semibold text-slate-300 block">Tópicos (um por linha):</label>
+                <textarea class="subject-topics-textarea w-full px-3 py-2 rounded-md futuristic-input" rows="5" placeholder="1. Direitos Fundamentais\n2. Organização do Estado">${topics}</textarea>`;
             subjectsContainer.appendChild(subjectDiv);
             subjectDiv.querySelector('.remove-subject-btn').addEventListener('click', () => subjectDiv.remove());
         };
@@ -363,14 +360,14 @@
             const studyDuration = examDateOption === 'unknown' ? document.getElementById('study-duration').value : null;
             const days = Array.from(document.querySelectorAll('input[name="dia"]:checked')).map(el => el.value);
             const shifts = Array.from(document.querySelectorAll('input[name="turno"]:checked')).map(el => el.value);
-            if (!contestName || !startDate || days.length === 0 || shifts.length === 0 || (examDateOption === 'known' && !examDate)) { showToast('Por favor, preencha todos os campos de informação geral.', true); return; }
+            if (!contestName || !startDate || days.length === 0 || shifts.length === 0 || (examDateOption === 'known' && !examDate)) { showToast('Preencha todas as informações da Missão.', true); return; }
             const finalSubjects = {};
             document.querySelectorAll('.subject-block').forEach(block => {
                 const name = block.querySelector('.subject-name-input').value.trim();
                 const topics = block.querySelector('.subject-topics-textarea').value.split('\n').map(t => t.trim()).filter(t => t);
                 if (name && topics.length > 0) finalSubjects[name] = { topics };
             });
-            if (Object.keys(finalSubjects).length === 0) { showToast('Adicione pelo menos uma matéria com tópicos.', true); return; }
+            if (Object.keys(finalSubjects).length === 0) { showToast('Adicione pelo menos uma disciplina.', true); return; }
             const progress = userPlan?.progress || {};
             Object.keys(finalSubjects).forEach(name => { if (!progress[name]) progress[name] = 0; });
             userPlan = { contestName, startDate, examDateOption, examDate, studyDuration, schedule: { days, shifts }, subjects: finalSubjects, progress };
@@ -379,13 +376,11 @@
             renderPlanView();
         };
         
-        // --- Renderização do Plano ---
+        // --- Plan Rendering ---
         const renderWelcomeView = () => { mainApp.classList.remove('hidden'); welcomeView.classList.remove('hidden'); planView.classList.add('hidden'); };
         const renderPlanView = () => {
             if (!userPlan) return;
-            mainApp.classList.remove('hidden');
-            welcomeView.classList.add('hidden');
-            planView.classList.remove('hidden');
+            mainApp.classList.remove('hidden'); welcomeView.classList.add('hidden'); planView.classList.remove('hidden');
             document.getElementById('main-title').textContent = userPlan.contestName;
             document.getElementById('headerDate').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             renderStudySessions();
@@ -424,7 +419,7 @@
             const container = document.getElementById('sessoesContainer');
             if(!userPlan.subjects) { container.innerHTML = ''; return; }
             const weeklySchedule = generateWeeklySchedule();
-            const colors = ['#3b82f6', '#6366f1', '#ec4899', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#8b5cf6', '#d946ef'];
+            const colors = ['#06b6d4', '#84cc16', '#f97316', '#ec4899', '#8b5cf6', '#3b82f6', '#f59e0b', '#22c55e', '#ef4444'];
             let colorIndex = 0;
             const subjectStyles = Object.keys(userPlan.subjects).reduce((acc, subject) => { acc[subject] = { color: colors[colorIndex % colors.length] }; colorIndex++; return acc; }, {});
             const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long' });
@@ -432,43 +427,42 @@
             container.innerHTML = Object.entries(weeklySchedule).map(([day, slots]) => {
                 const isToday = day === capitalizedToday;
                 const dayHtml = slots.map(slot => {
-                    if (!slot.session) return `<div class="p-4 rounded-lg bg-gray-100 text-sm text-gray-500">${slot.shift}: Descanso</div>`;
+                    if (!slot.session) return `<div class="p-4 rounded-lg bg-slate-800/30 text-sm text-slate-400">${slot.shift}: Descanso</div>`;
                     const { subject, topic, topicIndex } = slot.session;
                     const style = subjectStyles[subject];
                     const isCompleted = (userPlan.progress[subject] || 0) > topicIndex;
-                    return `<div class="flex items-start space-x-3 p-3 border-l-4 rounded-r-md bg-white shadow-sm" style="border-color: ${style.color};">
+                    return `<div class="flex items-start space-x-3 p-3 border-l-4 rounded-r-md bg-slate-800/50 shadow-sm" style="border-color: ${style.color};">
                         <div class="flex-1">
-                            <div class="flex justify-between items-center"><span class="font-bold text-sm" style="color: ${style.color};">${subject}</span><span class="text-xs font-semibold text-gray-600">${slot.shift}</span></div>
-                            <p class="mt-1 text-gray-600 text-sm ${isCompleted ? 'session-completed' : ''}">${topic}</p>
-                            <div class="mt-2 text-right"><button class="complete-btn text-xs font-medium py-1 px-3 rounded-md transition-all ${isCompleted ? 'bg-gray-400 text-white hover:bg-gray-500' : 'bg-green-500 text-white hover:bg-green-600'}" data-subject="${subject}" data-topic-index="${topicIndex}">${isCompleted ? '✔️ Desfazer' : 'Concluir'}</button></div>
+                            <div class="flex justify-between items-center"><span class="font-bold text-sm" style="color: ${style.color};">${subject}</span><span class="text-xs font-semibold text-slate-400">${slot.shift}</span></div>
+                            <p class="mt-1 text-slate-300 text-sm ${isCompleted ? 'session-completed' : ''}">${topic}</p>
+                            <div class="mt-2 text-right"><button class="complete-btn text-xs font-medium py-1 px-3 rounded-md transition-all ${isCompleted ? 'bg-slate-600 text-slate-300 hover:bg-slate-500' : 'bg-cyan-600 text-white hover:bg-cyan-500'}" data-subject="${subject}" data-topic-index="${topicIndex}">${isCompleted ? '✔️ Desfazer' : 'Concluir'}</button></div>
                         </div>
                     </div>`;
                 }).join('<div class="h-2"></div>');
-                return `<div class="p-4 rounded-xl ${isToday ? 'current-day-highlight bg-blue-50/50' : 'bg-gray-100/70'}"><h3 class="font-bold text-lg mb-3 text-slate-800">${day}</h3><div class="space-y-2">${dayHtml}</div></div>`;
+                return `<div class="p-4 rounded-xl ${isToday ? 'current-day-highlight bg-slate-800/80' : 'bg-slate-800/40'}"><h3 class="font-bold text-lg mb-3 text-slate-200">${day}</h3><div class="space-y-2">${dayHtml}</div></div>`;
             }).join('');
         };
         const renderGeneralProgress = () => {
-            const container = document.getElementById('progressoContainer');
+             const container = document.getElementById('progressoContainer');
             if(!userPlan || !userPlan.subjects) { container.innerHTML = ''; return; }
             let totalTopics = 0, completedTopics = 0;
-            const colors = ['blue', 'indigo', 'pink', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'purple', 'fuchsia'];
+            const colors = ['cyan', 'lime', 'orange', 'pink', 'violet', 'sky', 'amber', 'emerald', 'red'];
             let colorIndex = 0;
             const disciplinesHTML = Object.entries(userPlan.subjects).map(([name, data]) => {
-                const total = data.topics.length;
-                const completed = userPlan.progress[name] || 0;
+                const total = data.topics.length; const completed = userPlan.progress[name] || 0;
                 const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
                 totalTopics += total; completedTopics += completed;
                 const style = { color: colors[colorIndex % colors.length] }; colorIndex++;
-                return `<div class="accordion-item bg-white/70 backdrop-blur-sm rounded-lg shadow-md overflow-hidden">
+                return `<div class="accordion-item bg-slate-800/50 backdrop-blur-sm rounded-lg shadow-md overflow-hidden border border-slate-700">
                     <div class="accordion-header flex justify-between items-center p-3 cursor-pointer" data-target="#content-${name.replace(/[^a-zA-Z0-9]/g, '')}">
-                        <span class="font-semibold text-sm text-slate-700 flex-1">${name}</span>
-                        <div class="flex items-center space-x-2"><span class="text-xs font-bold text-${style.color}-600">${percentage}%</span><svg class="arrow-icon h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></div>
+                        <span class="font-semibold text-sm text-slate-300 flex-1">${name}</span>
+                        <div class="flex items-center space-x-2"><span class="text-xs font-bold text-${style.color}-400">${percentage}%</span><svg class="arrow-icon h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></div>
                     </div>
-                    <div class="progress-bar h-1.5 bg-${style.color}-100 w-full"><div class="progress-bar-inner h-full bg-${style.color}-500" style="width: ${percentage}%;"></div></div>
+                    <div class="progress-bar h-1 bg-${style.color}-900/50 w-full rounded-full"><div class="progress-bar-inner h-full bg-${style.color}-500 rounded-full" style="width: ${percentage}%;"></div></div>
                     <div id="content-${name.replace(/[^a-zA-Z0-9]/g, '')}" class="accordion-content">
-                        <ul class="text-xs text-slate-600 space-y-1 py-2">${data.topics.map((topic, index) => {
+                        <ul class="text-xs text-slate-400 space-y-1 py-2">${data.topics.map((topic, index) => {
                             const isCompleted = index < completed;
-                            const liClass = isCompleted ? 'text-slate-400 line-through cursor-pointer hover:text-blue-600 hover:no-underline' : '';
+                            const liClass = isCompleted ? 'text-slate-500 line-through cursor-pointer hover:text-cyan-400 hover:no-underline' : '';
                             const dataAttrs = isCompleted ? `data-subject="${name}" data-topic-index="${index}"` : '';
                             return `<li class="flex items-start gap-2 p-1 rounded ${liClass}" ${dataAttrs}><span class="mt-0.5">${isCompleted ? '✅' : '▪️'}</span><span>${index + 1}. ${topic}</span></li>`
                         }).join('')}</ul>
@@ -476,16 +470,15 @@
                 </div>`;
             }).join('');
             const totalPercentage = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
-            const summaryHTML = `<div class="bg-gradient-to-br from-sky-500 to-blue-600 text-white p-6 rounded-xl shadow-xl text-center"><h3 class="text-lg font-bold">Progresso Total</h3><div class="text-5xl font-extrabold my-2">${totalPercentage}%</div><p class="text-sm opacity-90">${completedTopics} de ${totalTopics} tópicos concluídos.</p></div>`;
+            const summaryHTML = `<div class="bg-gradient-to-br from-sky-600 to-cyan-500 text-white p-6 rounded-xl shadow-xl text-center border border-sky-400"><h3 class="text-lg font-bold">Progresso Total</h3><div class="text-5xl font-extrabold my-2">${totalPercentage}%</div><p class="text-sm opacity-90">${completedTopics} de ${totalTopics} tópicos concluídos.</p></div>`;
             container.innerHTML = summaryHTML + disciplinesHTML;
         };
 
         // --- Event Listeners ---
-        // Auth Listeners
         const setFeedback = (msg, isError = true) => {
             const el = document.getElementById('auth-feedback');
             el.textContent = msg;
-            el.className = `text-sm mt-4 h-4 ${isError ? 'text-red-500' : 'text-green-500'}`;
+            el.className = `text-sm mt-4 h-4 ${isError ? 'text-red-400' : 'text-green-400'}`;
             setTimeout(() => el.textContent = '', 4000);
         };
         const togglePasswordVisibility = (btn) => {
@@ -493,13 +486,9 @@
             const eyeOpen = btn.querySelector('.eye-open');
             const eyeClosed = btn.querySelector('.eye-closed');
             if (input.type === 'password') {
-                input.type = 'text';
-                eyeOpen.classList.add('hidden');
-                eyeClosed.classList.remove('hidden');
+                input.type = 'text'; eyeOpen.classList.add('hidden'); eyeClosed.classList.remove('hidden');
             } else {
-                input.type = 'password';
-                eyeOpen.classList.remove('hidden');
-                eyeClosed.classList.add('hidden');
+                input.type = 'password'; eyeOpen.classList.remove('hidden'); eyeClosed.classList.add('hidden');
             }
         };
         document.getElementById('show-signup').addEventListener('click', (e) => { e.preventDefault(); switchAuthForm('signup-form'); });
@@ -520,8 +509,6 @@
                 else setFeedback('Erro ao criar conta.');
             });
         });
-
-        // App Listeners
         document.getElementById('addSubjectBtn').addEventListener('click', () => addSubjectInputBlock());
         document.getElementById('confirmPlanBtn').addEventListener('click', handleConfirmPlan);
         document.getElementById('createNewPlanBtn').addEventListener('click', () => openSetupModal(false));
@@ -534,14 +521,10 @@
                 const { subject, topicIndex } = button.dataset;
                 const topicIndexInt = parseInt(topicIndex, 10);
                 const isCurrentlyCompleted = (userPlan.progress[subject] || 0) > topicIndexInt;
-
                 userPlan.progress[subject] = isCurrentlyCompleted ? topicIndexInt : topicIndexInt + 1;
-                
-                button.disabled = true;
                 await savePlanToFirestore(false);
                 renderStudySessions();
                 renderGeneralProgress();
-                // O botão será re-renderizado, então não precisamos reativá-lo aqui.
             }
         });
         
