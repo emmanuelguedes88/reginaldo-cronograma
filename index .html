@@ -71,31 +71,9 @@
             box-shadow: 0 0 10px rgba(10, 186, 251, 0.4);
             background-color: #334155;
         }
-
-        #error-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background-color: rgba(10, 20, 30, 0.9);
-            z-index: 100;
-            color: #fca5a5;
-            text-align: center;
-            padding: 2rem;
-            align-items: center;
-            justify-content: center;
-        }
     </style>
 </head>
 <body class="antialiased text-slate-200 bg-gradient-to-br from-slate-900 via-sky-900 to-slate-900 min-h-screen">
-
-    <div id="error-overlay">
-        <div>
-            <h2 class="text-2xl font-bold text-red-400 mb-4">Erro Crítico de Carregamento</h2>
-            <p class="text-red-300">A aplicação não conseguiu carregar as bibliotecas essenciais do Firebase.</p>
-            <p class="text-slate-400 mt-2 text-sm">Isto pode ser causado por um bloqueio de rede, firewall, ou uma extensão do navegador. Por favor, tente recarregar a página ou verifique a sua ligação.</p>
-        </div>
-    </div>
-
 
     <div id="loadingOverlay" class="hidden fixed inset-0 z-[60] flex-col items-center justify-center modal-backdrop">
         <div class="loader"></div>
@@ -245,11 +223,6 @@
     
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        if (typeof firebase === 'undefined' || typeof firebase.app === 'undefined') {
-            document.getElementById('error-overlay').style.display = 'flex';
-            return;
-        }
-
         const firebaseConfig = {
             apiKey: "AIzaSyCjoAgqr7qbO305HuehDcqbc9WMcCRHupE",
             authDomain: "cronograma-de-estudos-60ec8.firebaseapp.com",
@@ -259,6 +232,7 @@
             appId: "1:678017000398:web:f8e3706f4d5cbfb943419f"
         };
 
+        // Usa a sintaxe v8 namespaced (global)
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -525,7 +499,7 @@
         });
         document.getElementById('signup-btn').addEventListener('click', () => {
             const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
+            const password = document.getElementById('signup-password').value; 
             if (password.length < 6) return setFeedback('A senha deve ter pelo menos 6 caracteres.');
             auth.createUserWithEmailAndPassword(email, password).catch(err => {
                 if (err.code === 'auth/email-already-in-use') setFeedback('Este e-mail já está em uso.');
