@@ -9,10 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- SDKs do Firebase v8 - SINTAXE COMPATÍVEL COM SCRIPT GLOBAL -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- SDKs do Firebase v8 - Carregados da CDN alternativa (Cloudflare) para máxima compatibilidade -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.10.1/firebase-app.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.10.1/firebase-auth.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.10.1/firebase-firestore.min.js"></script>
 
     <style>
         body { 
@@ -235,7 +235,6 @@
             measurementId: "G-PJLJFRD24Y"
         };
 
-        // CORREÇÃO QUÂNTICA: Inicializa a aplicação e obtém os serviços usando a sintaxe correta para scripts globais.
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -251,7 +250,6 @@
         const mainApp = document.getElementById('mainApp');
         const feedbackToast = document.getElementById('feedback-toast');
         
-        // --- UI Control ---
         const showLoading = (text = 'Aguarde...') => { loadingOverlay.querySelector('p').textContent = text; loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex'); };
         const hideLoading = () => { loadingOverlay.classList.add('hidden'); loadingOverlay.classList.remove('flex'); };
         const showAuthModal = () => { mainApp.classList.add('hidden'); authModal.classList.remove('hidden'); authModal.classList.add('flex'); setTimeout(() => authModal.querySelector('.modal-content-wrapper').classList.add('active'), 50); };
@@ -267,7 +265,6 @@
             setTimeout(() => { feedbackToast.classList.remove('show'); }, 3000);
         };
 
-        // --- Auth & Data Logic ---
         auth.onAuthStateChanged((user) => {
             if (user) {
                 if (userId === user.uid) return;
@@ -309,7 +306,6 @@
             finally { hideLoading(); }
         };
         
-        // --- Setup Modal Logic ---
         const openSetupModal = (isEditing = false) => {
             document.getElementById('setup-title').textContent = isEditing ? 'Editar Plano de Estudos' : 'Configurar Plano de Estudos';
             const dias = {Segunda: 'Seg', Terça: 'Ter', Quarta: 'Qua', Quinta: 'Qui', Sexta: 'Sex', Sábado: 'Sáb', Domingo: 'Dom'};
@@ -381,7 +377,6 @@
             renderPlanView();
         };
         
-        // --- Plan Rendering ---
         const renderWelcomeView = () => { mainApp.classList.remove('hidden'); welcomeView.classList.remove('hidden'); planView.classList.add('hidden'); };
         const renderPlanView = () => {
             if (!userPlan) return;
