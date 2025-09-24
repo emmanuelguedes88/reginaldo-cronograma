@@ -9,10 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- SDKs do Firebase v8 - Carregados da CDN alternativa (Cloudflare) para máxima compatibilidade -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.10.1/firebase-app.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.10.1/firebase-auth.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.10.1/firebase-firestore.min.js"></script>
+    <!-- SOLUÇÃO DEFINITIVA: SDKs de COMPATIBILIDADE do Firebase v8. Mais robustos para este ambiente. -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
         body { 
@@ -23,8 +23,6 @@
         .modal-backdrop { background-color: rgba(10, 10, 20, 0.7); backdrop-filter: blur(12px); }
         .current-day-highlight { box-shadow: 0 0 25px rgba(10, 186, 251, 0.5), 0 0 10px rgba(10, 186, 251, 0.3) inset; border: 2px solid #0891b2; }
         .progress-bar-inner { transition: width 0.5s ease-in-out; }
-        
-        /* Custom Checkbox & Radio for Dark Theme */
         .custom-checkbox input[type="checkbox"], .custom-radio input[type="radio"] { display: none; }
         .custom-checkbox label, .custom-radio label {
             border: 2px solid #334155; background-color: #1e293b; color: #94a3b8;
@@ -34,7 +32,6 @@
             background-color: #0e7490; border-color: #06b6d4; color: white;
             transform: scale(1.05); box-shadow: 0 0 15px rgba(10, 186, 251, 0.4);
         }
-        
         .session-completed { opacity: 0.5; text-decoration: line-through; }
         .modal-content-wrapper { transform: scale(0.95); opacity: 0; transition: transform 0.2s ease-out, opacity 0.2s ease-out; }
         .modal-content-wrapper.active { transform: scale(1); opacity: 1; }
@@ -44,14 +41,12 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
         .auth-form { display: none; }
         .auth-form.active { display: block; }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease-out; padding: 0 1rem; }
         .accordion-content.open { max-height: 30rem; overflow-y: auto; padding: 0.5rem 1rem 1rem 1rem; }
         .accordion-header .arrow-icon { transition: transform 0.3s ease-out; }
         .accordion-header.open .arrow-icon { transform: rotate(180deg); }
-        
         #feedback-toast {
             transition: opacity 0.3s, transform 0.3s;
             transform: translateY(100%); opacity: 0; visibility: hidden;
@@ -59,8 +54,6 @@
         #feedback-toast.show {
             transform: translateY(0); opacity: 1; visibility: visible;
         }
-
-        /* Futuristic Input Styles */
         .futuristic-input {
             background-color: #1e293b;
             border: 1px solid #334155;
@@ -73,9 +66,30 @@
             box-shadow: 0 0 10px rgba(10, 186, 251, 0.4);
             background-color: #334155;
         }
+        #error-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(10, 20, 30, 0.9);
+            z-index: 100;
+            color: #fca5a5;
+            text-align: center;
+            padding: 2rem;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body class="antialiased text-slate-200 bg-gradient-to-br from-slate-900 via-sky-900 to-slate-900 min-h-screen">
+
+    <div id="error-overlay">
+        <div>
+            <h2 class="text-2xl font-bold text-red-400 mb-4">Erro Crítico de Carregamento</h2>
+            <p class="text-red-300">A aplicação não conseguiu carregar as bibliotecas essenciais do Firebase.</p>
+            <p class="text-slate-400 mt-2 text-sm">Isto pode ser causado por um bloqueio de rede, firewall, ou uma extensão do navegador. Por favor, tente recarregar a página ou verifique a sua ligação.</p>
+        </div>
+    </div>
+
 
     <div id="loadingOverlay" class="hidden fixed inset-0 z-[60] flex-col items-center justify-center modal-backdrop">
         <div class="loader"></div>
@@ -224,17 +238,23 @@
     </div>
     
     <script>
-    window.addEventListener('load', () => {
+    document.addEventListener('DOMContentLoaded', () => {
+        // Failsafe: Verifica se o objeto firebase foi carregado. Se não, mostra o erro.
+        if (typeof firebase === 'undefined' || typeof firebase.app === 'undefined') {
+            document.getElementById('error-overlay').style.display = 'flex';
+            return;
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyCjoAgqr7qbO305HuehDcqbc9WMcCRHupE",
             authDomain: "cronograma-de-estudos-60ec8.firebaseapp.com",
             projectId: "cronograma-de-estudos-60ec8",
             storageBucket: "cronograma-de-estudos-60ec8.firebasestorage.app",
             messagingSenderId: "678017000398",
-            appId: "1:678017000398:web:f8e3706f4d5cbfb943419f",
-            measurementId: "G-PJLJFRD24Y"
+            appId: "1:678017000398:web:f8e3706f4d5cbfb943419f"
         };
 
+        // Usa a sintaxe v8 namespaced (global)
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -474,7 +494,6 @@
             container.innerHTML = summaryHTML + disciplinesHTML;
         };
 
-        // --- Event Listeners ---
         const setFeedback = (msg, isError = true) => {
             const el = document.getElementById('auth-feedback');
             el.textContent = msg;
