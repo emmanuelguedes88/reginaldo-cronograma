@@ -9,10 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- SDKs do Firebase v9 - Método Global Robusto -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+    <!-- SDKs do Firebase v8 - SINTAXE COMPATÍVEL COM SCRIPT GLOBAL -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
         body { 
@@ -224,13 +224,7 @@
     </div>
     
     <script>
-    // CORREÇÃO FINAL: Espera o DOM e todos os scripts carregarem antes de executar
     window.addEventListener('load', () => {
-        // As funções são extraídas diretamente dos namespaces corretos dentro do objeto 'firebase' global.
-        const { initializeApp } = firebase;
-        const { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } = firebase.auth;
-        const { getFirestore, doc, setDoc, getDoc } = firebase.firestore;
-
         const firebaseConfig = {
             apiKey: "AIzaSyCjoAgqr7qbO305HuehDcqbc9WMcCRHupE",
             authDomain: "cronograma-de-estudos-60ec8.firebaseapp.com",
@@ -241,10 +235,11 @@
             measurementId: "G-PJLJFRD24Y"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
+        // CORREÇÃO QUÂNTICA: Inicializa a aplicação e obtém os serviços usando a sintaxe correta para scripts globais.
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
         let userPlan = null;
         let userId = null;
 
@@ -273,7 +268,7 @@
         };
 
         // --- Auth & Data Logic ---
-        onAuthStateChanged(auth, (user) => {
+        auth.onAuthStateChanged((user) => {
             if (user) {
                 if (userId === user.uid) return;
                 userId = user.uid;
@@ -293,9 +288,9 @@
             if (!userId) return;
             showLoading('A carregar o seu plano...');
             try {
-                const docRef = doc(db, "userPlans", userId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
+                const docRef = db.collection("userPlans").doc(userId);
+                const docSnap = await docRef.get();
+                if (docSnap.exists) {
                     userPlan = docSnap.data();
                     renderPlanView();
                 } else { renderWelcomeView(); }
@@ -307,7 +302,8 @@
             if (!userId || !userPlan) return;
             showLoading('A guardar...');
             try {
-                await setDoc(doc(db, "userPlans", userId), userPlan);
+                const docRef = db.collection("userPlans").doc(userId);
+                await docRef.set(userPlan);
                 if (showSuccessMessage) showToast("Plano guardado com sucesso!");
             } catch(error) { console.error("Erro ao guardar o plano:", error); showToast("Não foi possível guardar o seu plano.", true); } 
             finally { hideLoading(); }
@@ -507,13 +503,13 @@
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             if(!email || !password) return setFeedback('Preencha e-mail e senha.');
-            signInWithEmailAndPassword(auth, email, password).catch(err => setFeedback('E-mail ou senha inválidos.'));
+            auth.signInWithEmailAndPassword(email, password).catch(err => setFeedback('E-mail ou senha inválidos.'));
         });
         document.getElementById('signup-btn').addEventListener('click', () => {
             const email = document.getElementById('signup-email').value;
             const password = document.getElementById('signup-password').value;
             if (password.length < 6) return setFeedback('A senha deve ter pelo menos 6 caracteres.');
-            createUserWithEmailAndPassword(auth, email, password).catch(err => {
+            auth.createUserWithEmailAndPassword(email, password).catch(err => {
                 if (err.code === 'auth/email-already-in-use') setFeedback('Este e-mail já está em uso.');
                 else setFeedback('Erro ao criar conta.');
             });
@@ -522,7 +518,7 @@
         document.getElementById('confirmPlanBtn').addEventListener('click', handleConfirmPlan);
         document.getElementById('createNewPlanBtn').addEventListener('click', () => openSetupModal(false));
         document.getElementById('editPlanBtn').addEventListener('click', () => openSetupModal(true));
-        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+        document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
         
         document.getElementById('sessoesContainer').addEventListener('click', async (e) => {
             const button = e.target.closest('.complete-btn');
